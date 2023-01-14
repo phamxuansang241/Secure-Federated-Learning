@@ -1,0 +1,14 @@
+{
+    "batch_size": 64,
+    "client_epochs": 1,
+    "clients": 5,
+    "compress_digits": 10,
+    "data_sampling_technique": "iid",
+    "datasets": "csic2010",
+    "fraction": 1.0,
+    "global_epochs": 10,
+    "learning_rate": 0.01,
+    "name": "Nov-15-2022_50-client_",
+    "noise_level": 0.001,
+    "overwrite_experiment": true
+}

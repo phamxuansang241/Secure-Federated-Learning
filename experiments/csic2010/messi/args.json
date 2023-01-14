@@ -1,0 +1,17 @@
+{
+    "batch_size": 64,
+    "clients": 5,
+    "clipping_norm": 2.0,
+    "compress_digits": 15,
+    "data_sampling_technique": "iid",
+    "datasets": "csic2010",
+    "delta": 0.0003,
+    "dp_mode": true,
+    "epsilon": 1000.0,
+    "fraction": 1.0,
+    "global_epochs": 5,
+    "local_epochs": 1,
+    "name": "sample.json",
+    "noise_level": 0.0,
+    "overwrite_experiment": true
+}

@@ -1,0 +1,31 @@
+{
+    "global_config": {
+        "name": "Jan-14-2023_Test_",
+        "overwrite_experiment": true,
+        "device": "cuda",
+        "noise_level": 0.0001,
+        "compress_digits": 15,
+        "dp_mode": false
+    },
+    "data_config": {
+        "dataset_name": "csic2010",
+        "data_sampling_technique": "iid"
+    },
+    "fed_config": {
+        "global_epochs": 10,
+        "local_epochs": 1,
+        "nb_clients": 5,
+        "fraction": 1.0,
+        "batch_size": 64
+    },
+    "optim_config": {
+        "lr": 0.001
+    },
+    "dp_config": {
+        "epsilon": 50,
+        "delta": 3e-05,
+        "clipping_norm": 2.0,
+        "is_fixed_client_iter": true,
+        "client_iter": 700
+    }
+}

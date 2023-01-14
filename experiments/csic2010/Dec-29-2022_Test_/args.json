@@ -1,0 +1,18 @@
+{
+    "batch_size": 16,
+    "clients": 5,
+    "clipping_norm": 4.0,
+    "compress_digits": 15,
+    "data_sampling_technique": "iid",
+    "datasets": "csic2010",
+    "delta": 3e-05,
+    "dp_mode": true,
+    "epsilon": 64.0,
+    "fraction": 1.0,
+    "global_epochs": 5,
+    "local_epochs": 1,
+    "name": "Dec-29-2022_Test_",
+    "noise_level": 0.0,
+    "overwrite_experiment": true,
+    "sampling_rate": 0.01
+}
