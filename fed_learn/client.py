@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from functorch import make_functional, grad, grad_and_value, vmap
 import time
 from opacus.accountants.utils import get_noise_multiplier
+import numpy
 
 
 class Client:
