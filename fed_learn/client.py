@@ -1,7 +1,6 @@
 import torch
 import dp_lib
 import model_lib
-import fed_learn
 import numpy as np
 import math
 from typing import Callable
@@ -11,7 +10,6 @@ from torch.optim import Adam
 from torch import nn
 import torch.nn.functional as F
 from functorch import make_functional, grad, grad_and_value, vmap
-import gc
 import time
 from opacus.accountants.utils import get_noise_multiplier
 
