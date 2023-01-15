@@ -176,8 +176,6 @@ print('\t Noise level:', noise_level)
 for epoch in range(fed_config['global_epochs']):
     print('[INFO] Global Epoch {0} is starting ...'.format(epoch))
 
-
-        
     server.init_for_new_epoch()
     selected_clients = server.select_clients()
     clients_ids = [c.index for c in selected_clients]
@@ -200,7 +198,6 @@ for epoch in range(fed_config['global_epochs']):
 
         server.epoch_losses.append(client_losses[-1])
         # server.receive_results(client)
-        
 
     server.decode_compress_model(selected_clients, compress_nb)
     server.summarize_weights()

@@ -12,19 +12,40 @@ import torch.nn.functional as F
 from functorch import make_functional, grad, grad_and_value, vmap
 import time
 from opacus.accountants.utils import get_noise_multiplier
-import numpy
-import tensorflow
 
 
 class Client:
     def __init__(self, index: int):
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.index = index
-        self.model = None
-        self.encoded_weights = None
-        self.ceil_max_weight = None
         self.x_train = None
         self.y_train = None
+        self.data_loader = None
+
+        self.local_epochs = None
+        self.model = None
+        self.optimizer = None
+        self.criterion = None
+        self.lr = None
+
+        self.encoded_weights = None
+        self.ceil_max_weight = None
+
+    def setup(self, **client_config):
+        """Set up the configuration of each client"""
+        batch_size = client_config['training_config']['batch_size']
+        x_train = torch.from_numpy(self.x_train)
+        y_train = torch.from_numpy(self.y_train)
+
+        train_dataset = TensorDataset(x_train, y_train)
+        self.data_loader = DataLoader(train_dataset,
+                                      shuffle=True,
+                                      batch_size=batch_size)
+
+        self.local_epochs = client_config['training_config']['local_epochs']
+        self.lr = 0.001
+        self.optimizer = Adam(self.model.parameters(), lr=self.lr)
+        self.criterion = nn.CrossEntropyLoss()
 
     def init_model(self, model_fn: Callable, model_weights):
         temp_model = model_fn().to(self.device)

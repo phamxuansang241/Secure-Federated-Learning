@@ -36,15 +36,17 @@ class Server:
         self.model_fn = model_fn
         temp_model = self.model_fn()
 
+        self.dp_config = dp_config
         if global_config['dp_mode'] and not ModuleValidator.is_valid(temp_model):
             temp_model = ModuleValidator.fix(temp_model)
-            print('dadas')
 
         self.global_test_metrics = {
             'loss': [], 'accuracy': []
         }
+
         self.global_model_weights = model_lib.get_model_weights(temp_model)
         model_lib.get_rid_of_models(temp_model)
+
         self.weights_sum_plain = None
 
         # Initialize the client with differential privacy or not
@@ -52,7 +54,6 @@ class Server:
             self.ClientClass = fed_learn.Client
         else:
             self.ClientClass = fed_learn.PriClient
-            self.dp_config = dp_config
 
         # Initialize the losses
         self.global_train_losses = []
