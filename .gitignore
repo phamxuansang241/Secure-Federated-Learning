@@ -1,4 +1,12 @@
 /FLDP_env
-/experiments
+/experiments/csic2010
+/experiments/fusion
+/experiments/fwaf
+/experiments/httpparams
 model.pth
 /fed_learn/__pycache__
+/data_lib/__pycache__
+/experiments/__pycache__
+/dp_lib/__pycache__
+/model_lib/__pycache__
+/security_lib/__pycache__
