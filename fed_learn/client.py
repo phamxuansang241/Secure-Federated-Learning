@@ -63,30 +63,12 @@ class Client:
         if self.model is None:
             raise ValueError('Model is not created for client: {0}'.format(self.index))
 
-        batch_size = training_params['batch_size']
-        epochs = training_params['local_epochs']
-        init_lr = 0.001
-
-        x_train = torch.from_numpy(self.x_train)
-        y_train = torch.from_numpy(self.y_train)
-
-        train_dataset = TensorDataset(x_train, y_train)
-        data_size = len(train_dataset)
-        train_steps = data_size // batch_size
-
-        train_data_loader = DataLoader(train_dataset,
-                                       shuffle=True,
-                                       batch_size=batch_size)
-
-        opt = Adam(self.model.parameters(), lr=init_lr)
-        loss_fn = nn.CrossEntropyLoss()
-
         # measure how long training is going to take
         start_time = time.time()
 
         history = {'loss': [], 'accuracy': []}
 
-        for e in range(0, epochs):
+        for e in range(0, self.local_epochs):
             # set the model_lib in training mode
             self.model.train()
 
@@ -96,20 +78,20 @@ class Client:
             train_correct = 0
 
             # loop over the training set
-            for (x_batch, y_batch) in train_data_loader:
+            for (x_batch, y_batch) in self.data_loader:
                 # send the input to the device
                 (x_batch, y_batch) = (x_batch.long().to(self.device),
                                       y_batch.long().to(self.device))
                 
                 # perform a forward pass and calculate the training loss
                 pred = self.model(x_batch)
-                loss = loss_fn(pred, y_batch)
+                loss = self.criterion(pred, y_batch)
 
                 # zero out the gradients, perform the backpropagation step,
                 # and update the weights
-                opt.zero_grad()
+                self.optimizer.zero_grad()
                 loss.backward()
-                opt.step()
+                self.optimizer.step()
 
                 # add the loss to the total training loss
                 # and calculate the number of correct predictions
@@ -119,9 +101,9 @@ class Client:
                 ).sum().item()
 
             # calculate the average training loss
-            avg_train_loss = total_train_loss / train_steps
+            avg_train_loss = total_train_loss / len(self.data_loader)
             # print(trainCorrect)
-            train_correct = train_correct / data_size
+            train_correct = train_correct / len(self.x_train)
 
             # update our training history
             history['loss'].append(avg_train_loss.cpu().detach().numpy())
