@@ -183,11 +183,11 @@ for epoch in range(fed_config['global_epochs']):
 
     for client in selected_clients:
         print('\t Client {} is starting the training'.format(client.index))
+        
+        if global_config['dp_mode']:
+            if client.current_iter > client.max_allow_iter:
+                break
 
-        # server.send_model(client)
-        if client.current_iter > client.max_allow_iter:
-            break
-            
         model_lib.set_model_weights(client.model, server.global_model_weights, client.device)
         client_losses = client.edge_train()
 

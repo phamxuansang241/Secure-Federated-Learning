@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from functorch import make_functional, grad, grad_and_value, vmap
 import time
 from opacus.accountants.utils import get_noise_multiplier
+import gc
 
 
 class Client:
@@ -59,19 +60,18 @@ class Client:
     def receive_and_init_model(self, model_fn: Callable, model_weights):
         self.init_model(model_fn, model_weights)
 
-    def edge_train(self, training_params: dict):
+    def edge_train(self):
         if self.model is None:
             raise ValueError('Model is not created for client: {0}'.format(self.index))
-
+        self.model.to(self.device)
+        # set the model_lib in training mode
+        self.model.train()
         # measure how long training is going to take
         start_time = time.time()
 
-        history = {'loss': [], 'accuracy': []}
+        losses = []
 
         for e in range(0, self.local_epochs):
-            # set the model_lib in training mode
-            self.model.train()
-
             # initialize the total training and validation loss
             total_train_loss = 0
             # initialize the number of correct predictions iin the training
@@ -93,26 +93,17 @@ class Client:
                 loss.backward()
                 self.optimizer.step()
 
-                # add the loss to the total training loss
-                # and calculate the number of correct predictions
-                total_train_loss = total_train_loss + loss
-                train_correct = train_correct + (pred.argmax(1) == y_batch).type(
-                    torch.float
-                ).sum().item()
-
-            # calculate the average training loss
-            avg_train_loss = total_train_loss / len(self.data_loader)
-            # print(trainCorrect)
-            train_correct = train_correct / len(self.x_train)
-
-            # update our training history
-            history['loss'].append(avg_train_loss.cpu().detach().numpy())
-            history['accuracy'].append(train_correct)
+                losses.append(loss.item())
+                torch.cuda.empty_cache()
 
         # finish measuring how long training took
         end_time = time.time()
+        print("\t\tLoss value: {:.6f}".format(sum(losses) / len(losses)))
         print("\t\t Total time taken to train: {:.2f}s".format(end_time - start_time))
-        return history
+        
+        gc.collect()
+
+        return losses
 
     def edge_train_dp(self, training_params: dict, dp_config: dict):
         if self.model is None:
