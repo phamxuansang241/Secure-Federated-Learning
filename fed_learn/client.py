@@ -105,14 +105,6 @@ class Client:
 
         return losses
 
-    def add_noise(self, noise_level):
-        client_weights = model_lib.get_model_weights(self.model)
-        for layer_index in range(len(client_weights)):
-            std = np.std(client_weights[layer_index])
-            noise = np.random.normal(0.0, std * noise_level, size=client_weights[layer_index].shape)
-            client_weights[layer_index] = client_weights[layer_index] + noise
-        model_lib.set_model_weights(self.model, client_weights, used_device=self.device)
-
     def encode_compress_model(self, compress_nb):
         client_weights = model_lib.get_model_weights(self.model)
         weights_shape, _ = model_lib.get_model_infor(self.model)
