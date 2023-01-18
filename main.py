@@ -191,13 +191,10 @@ for epoch in range(fed_config['global_epochs']):
         model_lib.set_model_weights(client.model, server.global_model_weights, client.device)
         client_losses = client.edge_train()
 
-        print('\t\t Adding noise to parameters ...')
-        # client.add_noise(noise_level)
         print('\t\t Encoding parameters ...')
         client.encode_compress_model(compress_nb)
 
         server.epoch_losses.append(client_losses[-1])
-        # server.receive_results(client)
 
     server.decode_compress_model(selected_clients, compress_nb)
     server.summarize_weights()
