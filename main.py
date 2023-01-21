@@ -56,7 +56,6 @@ print('-' * 100)
 print('[INFO] DATA INFORMATION')
 
 num_classes = None
-model_name = None
 (x_train, y_train), (x_test, y_test) = (None, None), (None, None)
 (x_csic2010_train, y_csic2010_train), (x_csic2010_test, y_csic2010_test) = (None, None), (None, None)
 (x_fwaf_train, y_fwaf_train), (x_fwaf_test, y_fwaf_test) = (None, None), (None, None)
@@ -67,7 +66,6 @@ if data_config['dataset_name'] == 'csic2010':
     max_len = 500
     (x_train, y_train), (x_test, y_test) = data_lib.csic2010_load_data(0.2, max_len)
     num_classes = 2
-    model_name = 'model_csic2010'
 elif data_config['dataset_name'] == 'fwaf':
     print('Using fwaf dataset ...')
     max_len = 500
@@ -85,6 +83,10 @@ elif data_config['dataset_name'] == 'fusion':
 
     x_test = np.concatenate((x_csic2010_test, x_fwaf_test, x_httpparams_test), axis=0)
     y_test = np.concatenate((y_csic2010_test, y_fwaf_test, y_httpparams_test), axis=0)
+elif data_config['dataset_name'] == 'mnist':
+    print('Using mnist dataset ...')
+    (x_train, y_train), (x_test, y_test) = data_lib.mnist_load_data()
+
 
 '''
     CREATING MODEL
@@ -92,11 +94,15 @@ elif data_config['dataset_name'] == 'fusion':
 
 
 def model_fn():
-    model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=max_len, num_class=2)
+    model = None
+    if data_config['dataset_name'] == 'mnist':
+        model = model_lib.Mnist_Net(num_class=10)
+    else:    
+        model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=max_len, num_class=2)
 
     if global_config['dp_mode'] and not ModuleValidator.is_valid(model):
         model = ModuleValidator.fix(model)
-        print("dsasdasdds")
+        print("Model not valid for differential privacy and fix!")
 
     return model
 
