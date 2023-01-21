@@ -134,7 +134,7 @@ class Server:
             predictions = []
 
             for (x_batch, y_batch) in test_data_loader:
-                (x_batch, y_batch) = (x_batch.long().to(self.device),
+                (x_batch, y_batch) = (x_batch.float().to(self.device),
                                       y_batch.long().to(self.device))
     
                 pred = temp_model(x_batch)

@@ -1,5 +1,6 @@
+import torch
 import torch.nn as nn
-from torch.nn import ReLu, Linear, Softmax, MaxPool2d
+from torch.nn import ReLU, Linear, Softmax, MaxPool2d
 
 
 """
@@ -18,10 +19,10 @@ class Mnist_Net(nn.Module):
         # [Batch size, 1, 28, 28] --> [Batch size, 32, 24, 24]
         self.conv1 = nn.Conv2d(
             in_channels=1, out_channels=32, 
-            kernel_size=5, stride=1, padding="same"
+            kernel_size=5, stride=1, padding="valid"
         )
 
-        self.relu1 = ReLu()
+        self.relu1 = ReLU()
         # [Batch size, 32, 24, 24] --> [Batch size, 32, 12, 12]
         self.maxpool1 = MaxPool2d(kernel_size=2)
 
@@ -30,17 +31,17 @@ class Mnist_Net(nn.Module):
         # [Batch size, 32, 12, 12] --> [Batch size, 64, 8, 8]
         self.conv2 = nn.Conv2d(
             in_channels=32, out_channels=64, 
-            kernel_size=5, stride=1, padding="same"
+            kernel_size=5, stride=1, padding="valid"
         )
-        self.relu2 = ReLu()      
+        self.relu2 = ReLU()      
         # [Batch size, 64, 8, 8] --> [Batch size, 64, 4, 4]
         self.maxpool2 = MaxPool2d(kernel_size=2)
 
         # Input shape --> 100 outputs
         self.fc1 = Linear(64*4*4, 100)
-        self.relu3 = ReLu()
+        self.relu3 = ReLU()
         # 100 outputs --> Num-Class outputs
-        self.fc2 = Linear(num_class)
+        self.fc2 = Linear(100, num_class)
         self.softmax = Softmax(dim=1)
 
     def forward(self, x):
@@ -50,7 +51,7 @@ class Mnist_Net(nn.Module):
 
         x = self.conv2(x)
         x = self.relu2(x)
-        x = self.maxpool2(1)
+        x = self.maxpool2(x)
 
         x = x.reshape(x.size(0), -1)
         x = self.fc1(x)
