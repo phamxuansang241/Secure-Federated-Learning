@@ -192,7 +192,7 @@ for epoch in range(fed_config['global_epochs']):
         client_losses = client.edge_train()
 
         print('\t\t Encoding parameters ...')
-        compress_params.encode_model(client)
+        compress_params.encode_model(client=client)
 
         server.epoch_losses.append(client_losses[-1])
 

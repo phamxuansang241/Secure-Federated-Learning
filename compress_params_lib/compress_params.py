@@ -9,13 +9,10 @@ class CompressParams:
         self.compress_number = math.pow(10, self.compress_digit)
 
         self.client_compress_config = {
-            'ceil_max_weight': None, 
-            'encoded_weights': None
+            'ceil_max_weight': {}, 
+            'encoded_weights': {}
         }
 
-        
-
-    @staticmethod
     def encode_model(self, client):
         client_weights = model_lib.get_model_weights(client.model)
         weights_shape, _ = model_lib.get_model_infor(client.model)
@@ -25,14 +22,10 @@ class CompressParams:
         flatten_encoded_weights = np.ceil((flatten_weights*self.compress_number) / self.client_compress_config['ceil_max_weight'][client.index])
         self.client_compress_config['encoded_weights'][client.index] = model_lib.split_weight(flatten_encoded_weights, weights_shape)
 
-
-    @staticmethod
     def decode_model(self, selected_clients):
         decoded_weights = []
 
-        temp_model = self.model_fn()
-        weights_shape, _ = model_lib.get_model_infor(temp_model)
-        model_lib.get_rid_of_models(temp_model)
+        weights_shape, _ = model_lib.get_model_infor(selected_clients[0].model)
 
         for client in selected_clients:
             client_encoded_weights = self.client_compress_config['encoded_weights'][client.index]
