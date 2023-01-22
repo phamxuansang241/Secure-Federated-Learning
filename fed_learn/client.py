@@ -1,5 +1,4 @@
 import torch
-import dp_lib
 import model_lib
 import numpy as np
 import math
@@ -104,15 +103,6 @@ class Client:
         gc.collect()
 
         return losses
-
-    def encode_compress_model(self, compress_nb):
-        client_weights = model_lib.get_model_weights(self.model)
-        weights_shape, _ = model_lib.get_model_infor(self.model)
-
-        flatten_weights = model_lib.flatten_weight(client_weights)
-        self.ceil_max_weight = math.ceil(np.max(np.abs(flatten_weights)))
-        flatten_encoded_weights = np.ceil((flatten_weights*compress_nb) / self.ceil_max_weight)
-        self.encoded_weights = model_lib.split_weight(flatten_encoded_weights, weights_shape)
 
     def reset_model(self):
         model_lib.get_rid_of_models(self.model)
