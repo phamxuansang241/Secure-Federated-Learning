@@ -47,8 +47,6 @@ class Server:
         self.global_model_weights = model_lib.get_model_weights(temp_model)
         model_lib.get_rid_of_models(temp_model)
 
-        self.weights_sum_plain = None
-
         # Initialize the client with differential privacy or not
         if not global_config['dp_mode']:
             self.ClientClass = fed_learn.Client
@@ -131,7 +129,6 @@ class Server:
 
         with torch.no_grad():
             temp_model.eval()
-            predictions = []
 
             for (x_batch, y_batch) in test_data_loader:
                 (x_batch, y_batch) = (x_batch.float().to(self.device),
@@ -146,7 +143,6 @@ class Server:
         avg_test_loss = total_test_loss / test_steps
         test_correct = test_correct / len(test_dataset)
 
-        # print(test_correct)
         results_dict = {
             'loss': avg_test_loss.cpu().detach().item(),
             'accuracy': test_correct

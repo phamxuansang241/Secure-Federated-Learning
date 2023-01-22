@@ -1,6 +1,7 @@
 import fed_learn
 import model_lib
 import data_lib
+import compress_params_lib
 import experiments
 
 import copy
@@ -92,17 +93,12 @@ elif data_config['dataset_name'] == 'mnist':
     CREATING MODEL
 '''
 
-
 def model_fn():
     model = None
     if data_config['dataset_name'] == 'mnist':
         model = model_lib.Mnist_Net(num_class=10)
     else:    
         model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=max_len, num_class=2)
-
-    if global_config['dp_mode'] and not ModuleValidator.is_valid(model):
-        model = ModuleValidator.fix(model)
-        print("Model not valid for differential privacy and fix!")
 
     return model
 
@@ -174,10 +170,8 @@ print()
     TRAINING MODEL
 """
 print('[INFO] TRAINING MODEL ...')
-compress_nb = math.pow(10, global_config['compress_digits'])
-print('\t Compress number:', compress_nb)
-noise_level = global_config['noise_level']
-print('\t Noise level:', noise_level)
+compress_params = compress_params_lib.CompressParams(global_config['compress_digit'])
+print('\t Compress number:', compress_params.compress_number)
 
 for epoch in range(fed_config['global_epochs']):
     print('[INFO] Global Epoch {0} is starting ...'.format(epoch))
@@ -198,11 +192,12 @@ for epoch in range(fed_config['global_epochs']):
         client_losses = client.edge_train()
 
         print('\t\t Encoding parameters ...')
-        client.encode_compress_model(compress_nb)
+        compress_params.encode_model(client)
 
         server.epoch_losses.append(client_losses[-1])
 
-    server.decode_compress_model(selected_clients, compress_nb)
+    decoded_weights = compress_params.decode_model(selected_clients)
+    server.client_model_weights = decoded_weights.copy()
     server.summarize_weights()
 
     epoch_mean_loss = np.mean(server.epoch_losses)

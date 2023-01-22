@@ -3,12 +3,11 @@
         "name": "Test",
         "overwrite_experiment": true,
         "device": "cuda",
-        "noise_level": 0.0001,
-        "compress_digits": 15,
+        "compress_digit": 15,
         "dp_mode": false
     },
     "data_config": {
-        "dataset_name": "csic2010",
+        "dataset_name": "mnist",
         "data_sampling_technique": "iid"
     },
     "fed_config": {
