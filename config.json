@@ -8,11 +8,11 @@
         "dp_mode": false
     },
     "data_config": {
-        "dataset_name": "csic2010",
+        "dataset_name": "mnist",
         "data_sampling_technique": "iid"
     },
     "fed_config": {
-        "global_epochs": 10,
+        "global_epochs": 30,
         "local_epochs": 1,
         "nb_clients": 5,
         "fraction": 1.0,
