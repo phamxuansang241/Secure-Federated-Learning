@@ -2,21 +2,13 @@ import fed_learn
 import model_lib
 import data_lib
 import compress_params_lib
-import experiments
-
+import experiment_lib
 import copy
 import json
-import torch
-from torch import nn
-from torch.utils.data import DataLoader
-from torch.utils.data import TensorDataset
 import numpy as np
 from pathlib import Path
 import json
 from datetime import date
-import math
-from sklearn.metrics import SCORERS, classification_report
-from sklearn.metrics import confusion_matrix
 
 
 print("*** FIX VER 11")
@@ -45,7 +37,7 @@ global_config['name'] = today + '_' + global_config['name'] + '_'
 
 
 experiment_folder_path = Path(__file__).resolve().parent / 'experiments' / data_config['dataset_name'] / global_config['name']
-experiment = experiments.Experiment(experiment_folder_path,  global_config['overwrite_experiment'])
+experiment = experiment_lib.Experiment(experiment_folder_path,  global_config['overwrite_experiment'])
 experiment.serialize_config(config)
 
 '''
@@ -162,66 +154,6 @@ for epoch in range(fed_config['global_epochs']):
 '''
     EVALUATING MODEL
 '''
-print('[INFO] Evaluating model ...')
-batch_size = 32
-x_test = torch.from_numpy(x_test)
-y_test = torch.from_numpy(y_test)
-
-test_dataset = TensorDataset(x_test, y_test)
-test_data_loader = DataLoader(test_dataset,
-                              shuffle=False,
-                              batch_size=batch_size)
-                              
-test_steps = len(test_data_loader) // batch_size
-loss_fn = nn.CrossEntropyLoss()
-
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-temp_model = torch.load(experiment.global_weight_path).to(device)
-
-predictions = []
-with torch.no_grad():
-    temp_model.eval()
-
-    for (x_batch, y_batch) in test_data_loader:
-        x_batch = x_batch.long().to(device)
-                             
-        pred = temp_model(x_batch)
-        pred_np = pred.detach().cpu().numpy()                
-        
-        predictions.extend(pred_np)
-
-predictions = np.array(predictions)
-score = confusion_matrix(y_test.detach().cpu().numpy(), predictions.argmax(axis=1))
-score = score * 1.0
-print(score)
-
-tn, fp, fn, tp = score.ravel()
-acc = ((tn+tp)/(tn+fp+fn+tp))
-recall = tp / (tp+fn) 
-precision = tp / (tp + fp)
-fpr = fp/(tn+fp)
-drn = tn / (fp+tn)
-f_1 = (2 * recall * precision) / (recall + precision)
-
-result_dict = {'TN': tn, 'FP': fp, 'FN': fn, 'TP': tp,
-               'Accuracy': acc, 'Recall (TPR)': recall,
-               'Precision': precision, 'FPR (Fall-out)': fpr,
-               'DRN': drn, 'F_1 score': f_1
-               }
-
-with open(str(experiment.train_hist_path), 'r+') as f:
-    data = json.load(f)
-    data.update(result_dict)
-    json.dump(data, f)
-
-print("TN: ", tn)
-print("FP: ", fp)
-print("FN: ", fn)
-print("TP: ", tp)
-print("Accuracy: ", acc)
-print("Recall (TPR): ", recall)
-print("Precision: ", precision)
-print("FPR (Fall-out): ", fpr)
-print("DRN: ", drn)
-print("F_1 score: ", f_1)
+print('[INFO] GET EXPERIMENT RESULTS ...')
+experiment_lib.get_experiment_result(server, experiment, data_config['dataset_name'])
 
