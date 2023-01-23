@@ -33,7 +33,7 @@ def preprocessing_httpparams_dataset(df, max_len):
     return x_data, y_data
 
 
-def httpparams_load_data(test_prob, max_len):
+def httpparams_load_data(test_prob, max_len=500):
     df_train = pd.read_csv('datasets/httpparams/payload_train.csv')
     df_test = pd.read_csv('datasets/httpparams/payload_test.csv')
     df_full = pd.concat([df_train, df_test], ignore_index=True, sort=False)

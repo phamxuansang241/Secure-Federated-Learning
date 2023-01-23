@@ -37,7 +37,7 @@ def preprocessing_fwaf_dataset(data_file_lst, label_lst, max_len):
     return x_data, y_data
 
 
-def fwaf_load_data(test_prob, max_len):
+def fwaf_load_data(test_prob, max_len=500):
     FWAF_goodqueries_file = 'datasets/fwaf/goodqueries.txt'
     FWAF_badqueries_file = 'datasets/fwaf/badqueries.txt'
 

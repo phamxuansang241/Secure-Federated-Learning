@@ -67,7 +67,7 @@ def preprocessing_csic2010_dataset(data_file_lst, label_lst, max_len):
     return x_data, y_data
 
 
-def csic2010_load_data(test_prob, max_len):
+def csic2010_load_data(test_prob, max_len=500):
     normal_file_1 = 'datasets/csic2010/normalTrafficTraining.txt'
     normal_file_2 = 'datasets/csic2010/normalTrafficTest.txt'
     anomalous_file = 'datasets/csic2010/anomalousTrafficTest.txt'

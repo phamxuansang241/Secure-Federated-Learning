@@ -4,8 +4,7 @@ import numpy as np
 import fed_learn
 from fed_learn.weight_summarizer import WeightSummarizer
 import torch
-from torch.utils.data import DataLoader
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset, DataLoader
 from torch import nn
 from opacus.validators import ModuleValidator
 
@@ -18,6 +17,10 @@ class Server:
                  dp_config={}):
 
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        self.x_test = None
+        self.y_test = None
+        self.data_loader = None
+
         self.nb_clients = fed_config['nb_clients']
         self.client_fraction = fed_config['fraction']
         self.weight_summarizer = weight_summarizer
@@ -63,12 +66,20 @@ class Server:
 
     def setup(self):
         """Setup all configuration for federated learning"""
+        # Setup server's dataloader
+        batch_size = self.training_config['batch_size']
+        x_test = torch.from_numpy(self.x_test)
+        y_test = torch.from_numpy(self.y_test)
+
+        test_dataset = TensorDataset(x_test, y_test)
+        self.data_loader = DataLoader(test_dataset, shuffle=True, batch_size=batch_size)
+
+        # Set up each client
         client_config = {
             'training_config': self.training_config.copy(),
             'dp_config': self.dp_config.copy()
         }
 
-        # Set up each client
         for client in self.clients:
             self.send_model(client)
             client.setup(**client_config)
@@ -103,26 +114,12 @@ class Server:
         new_weights = self.weight_summarizer.process(self.client_model_weights)
         self.global_model_weights = new_weights
 
-    def get_training_config(self):
-        return self.training_config
-
     def update_training_config(self, config: dict):
         self.training_config.update(config)
 
     def test_global_model(self, x_test, y_test):
         temp_model = self.create_model_with_updated_weights()
 
-        batch_size = 32
-
-        x_test = torch.from_numpy(x_test)
-        y_test = torch.from_numpy(y_test)
-
-        test_dataset = TensorDataset(x_test, y_test)
-        test_data_loader = DataLoader(test_dataset,
-                                      shuffle=True,
-                                      batch_size=batch_size)
-
-        test_steps = len(test_data_loader) // batch_size
         loss_fn = nn.CrossEntropyLoss()
         total_test_loss = 0
         test_correct = 0
@@ -130,7 +127,7 @@ class Server:
         with torch.no_grad():
             temp_model.eval()
 
-            for (x_batch, y_batch) in test_data_loader:
+            for (x_batch, y_batch) in self.data_loader:
                 (x_batch, y_batch) = (x_batch.float().to(self.device),
                                       y_batch.long().to(self.device))
     
@@ -140,8 +137,8 @@ class Server:
                     torch.float
                 ).sum().item()
 
-        avg_test_loss = total_test_loss / test_steps
-        test_correct = test_correct / len(test_dataset)
+        avg_test_loss = total_test_loss / len(self.data_loader)
+        test_correct = test_correct / len(self.x_test)
 
         results_dict = {
             'loss': avg_test_loss.cpu().detach().item(),
@@ -151,7 +148,6 @@ class Server:
         for metric_name, value in results_dict.items():
             self.global_test_metrics[metric_name].append(value)
 
-        # temp_model.save_weight(str(path), overwrite=True)
         model_lib.get_rid_of_models(temp_model)
         return results_dict
 
@@ -173,17 +169,8 @@ class Server:
         self.global_model_weights = temp_model.get_weights()
         model_lib.get_rid_of_models(temp_model)
 
-    def decode_compress_model(self, selected_clients, compress_nb):
-        temp_model = self.model_fn()
-        weights_shape, _ = model_lib.get_model_infor(temp_model)
-        model_lib.get_rid_of_models(temp_model)
-
-        for client in selected_clients:
-            client_encoded_weights = client.encoded_weights
-            client_flatten_encoded_weights = model_lib.flatten_weight(client_encoded_weights)
-            client_flatten_encoded_weights = client_flatten_encoded_weights * client.ceil_max_weight / compress_nb
-            client_decoded_weights = model_lib.split_weight(client_flatten_encoded_weights, weights_shape)
-
-            self.client_model_weights.append(client_decoded_weights)
+    def receive_data(self, x, y):
+        self.x_test = x
+        self.y_test = y
 
 

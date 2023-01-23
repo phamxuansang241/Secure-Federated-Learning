@@ -18,6 +18,10 @@ def mnist_load_data():
     x_test = x_test.numpy()
     y_test = test_data.targets.numpy()
 
+    print("+++ mnist dataset: +++")
+    print("\tNumber of training samples: ", len(y_train))
+    print("\tNumber of testing samples: ", len(y_test))
+
     return (x_train, y_train), (x_test, y_test)
 
 

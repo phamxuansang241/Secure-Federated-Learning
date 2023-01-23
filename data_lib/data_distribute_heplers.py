@@ -28,12 +28,10 @@ def non_iid_data_indices(nb_clients: int, labels: np.ndarray, nb_shards: int = 2
 
 
 class DataHandler:
-    def __init__(self, x_train, y_train, x_test, y_test):
+    def __init__(self, x_train, y_train):
         self.nb_classes = len(np.unique(y_train))
         self.x_train = x_train
         self.y_train = y_train
-        self.x_test = x_test
-        self.y_test = y_test
 
     def sampling(self, sampling_technique, nb_clients):
         if sampling_technique.lower() == 'iid':
@@ -50,3 +48,4 @@ class DataHandler:
             x = self.x_train[data_indices]
             y = self.y_train[data_indices]
             client.receive_data(x, y)
+

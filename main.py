@@ -17,7 +17,6 @@ from datetime import date
 import math
 from sklearn.metrics import SCORERS, classification_report
 from sklearn.metrics import confusion_matrix
-from opacus.validators import ModuleValidator
 
 
 print("*** FIX VER 11")
@@ -49,46 +48,6 @@ experiment_folder_path = Path(__file__).resolve().parent / 'experiments' / data_
 experiment = experiments.Experiment(experiment_folder_path,  global_config['overwrite_experiment'])
 experiment.serialize_config(config)
 
-
-"""
-    PREPROCESSING DATA
-"""
-print('-' * 100)
-print('[INFO] DATA INFORMATION')
-
-num_classes = None
-(x_train, y_train), (x_test, y_test) = (None, None), (None, None)
-(x_csic2010_train, y_csic2010_train), (x_csic2010_test, y_csic2010_test) = (None, None), (None, None)
-(x_fwaf_train, y_fwaf_train), (x_fwaf_test, y_fwaf_test) = (None, None), (None, None)
-(x_httpparams_train, y_httpparams_train), (x_httpparams_test, y_httpparams_test) = (None, None), (None, None)
-
-if data_config['dataset_name'] == 'csic2010':
-    print('Using csic2010 dataset ...')
-    max_len = 500
-    (x_train, y_train), (x_test, y_test) = data_lib.csic2010_load_data(0.2, max_len)
-    num_classes = 2
-elif data_config['dataset_name'] == 'fwaf':
-    print('Using fwaf dataset ...')
-    max_len = 500
-    (x_train, y_train), (x_test, y_test) = data_lib.fwaf_load_data(0.2, max_len)
-elif data_config['dataset_name'] == 'httpparams':
-    print('Using httpparams dataset ...')
-    max_len = 500
-    (x_train, y_train), (x_test, y_test) = data_lib.httpparams_load_data(0.2, max_len)
-elif data_config['dataset_name'] == 'fusion':
-    print('Using three datasets: csic2010, fwaf, httpparams ...')
-    max_len = 500
-    (x_csic2010_train, y_csic2010_train), (x_csic2010_test, y_csic2010_test) = data_lib.csic2010_load_data(0.2, max_len)
-    (x_fwaf_train, y_fwaf_train), (x_fwaf_test, y_fwaf_test) = data_lib.fwaf_load_data(0.2, max_len)
-    (x_httpparams_train, y_httpparams_train), (x_httpparams_test, y_httpparams_test) = data_lib.httpparams_load_data(0.2, max_len)
-
-    x_test = np.concatenate((x_csic2010_test, x_fwaf_test, x_httpparams_test), axis=0)
-    y_test = np.concatenate((y_csic2010_test, y_fwaf_test, y_httpparams_test), axis=0)
-elif data_config['dataset_name'] == 'mnist':
-    print('Using mnist dataset ...')
-    (x_train, y_train), (x_test, y_test) = data_lib.mnist_load_data()
-
-
 '''
     CREATING MODEL
 '''
@@ -98,7 +57,7 @@ def model_fn():
     if data_config['dataset_name'] == 'mnist':
         model = model_lib.Mnist_Net(num_class=10)
     else:    
-        model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=max_len, num_class=2)
+        model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
 
     return model
 
@@ -122,31 +81,10 @@ server.update_training_config(training_config)
 server.create_clients()
 
 """
-    DISTRIBUTING DATA FOR CLIENTS
+    PREPROCESSING DATA AND DISTRIBUTING DATA
 """
-if data_config['dataset_name'] == 'fusion':
-    nb_clients_each_datasets = math.ceil(len(server.clients) / 3)
+data_lib.DataSetup().setup(server)
 
-    data_handler = data_lib.DataHandler(x_csic2010_train, y_csic2010_train,
-                                        x_csic2010_test, y_csic2010_test)
-    data_handler.assign_data_to_clients(server.clients[0:nb_clients_each_datasets],
-                                        data_config['data_sampling_technique'])
-    del data_handler
-
-    data_handler = data_lib.DataHandler(x_fwaf_train, y_fwaf_train, x_fwaf_test, y_fwaf_test)
-    data_handler.assign_data_to_clients(server.clients[nb_clients_each_datasets:2*nb_clients_each_datasets],
-                                        data_config['data_sampling_technique'])
-    del data_handler
-
-    data_handler = data_lib.DataHandler(x_httpparams_train, y_httpparams_train, x_httpparams_test, y_httpparams_test)
-    data_handler.assign_data_to_clients(server.clients[2*nb_clients_each_datasets:],
-                                        data_config['data_sampling_technique'])
-    del data_handler
-else:
-    data_handler = data_lib.DataHandler(x_train, y_train, x_test, y_test)
-    data_handler.assign_data_to_clients(server.clients,
-                                        data_config['data_sampling_technique'])
-    del data_handler
 
 """
     SET UP CLIENTS

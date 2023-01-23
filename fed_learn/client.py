@@ -3,12 +3,9 @@ import model_lib
 import numpy as np
 import math
 from typing import Callable
-from torch.utils.data import DataLoader
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import Adam
 from torch import nn
-import torch.nn.functional as F
-from functorch import make_functional, grad, grad_and_value, vmap
 import time
 from opacus.accountants.utils import get_noise_multiplier
 import gc
