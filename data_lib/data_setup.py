@@ -18,7 +18,7 @@ class DataSetup:
 
     def setup(self, server):
         self.preprocessing_data()
-        self.distribute_data(self, server)
+        self.distribute_data(server)
 
     def preprocessing_data(self):
         if self.dataset_name == 'csic2010':

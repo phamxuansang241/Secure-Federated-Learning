@@ -94,7 +94,7 @@ class Client:
 
         # finish measuring how long training took
         end_time = time.time()
-        print("\t\tLoss value: {:.6f}".format(sum(losses) / len(losses)))
+        print("\t\t Loss value: {:.6f}".format(sum(losses) / len(losses)))
         print("\t\t Total time taken to train: {:.2f}s".format(end_time - start_time))
         
         gc.collect()

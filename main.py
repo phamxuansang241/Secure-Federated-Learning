@@ -83,7 +83,7 @@ server.create_clients()
 """
     PREPROCESSING DATA AND DISTRIBUTING DATA
 """
-data_lib.DataSetup().setup(server)
+data_lib.DataSetup(data_config).setup(server)
 
 
 """
@@ -143,8 +143,8 @@ for epoch in range(fed_config['global_epochs']):
     print('\tLoss (client mean): {0}'.format(server.global_train_losses[-1]))
 
     # testing current model_lib and save weights
-    global_test_results = server.test_global_model(x_test, y_test)
-    print('--- Global test ---')
+    global_test_results = server.test_global_model()
+    print("\t----- Evaluating on server's test dataset -----")
 
     test_loss = global_test_results['loss']
     test_acc = global_test_results['accuracy']

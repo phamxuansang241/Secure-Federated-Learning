@@ -117,7 +117,7 @@ class Server:
     def update_training_config(self, config: dict):
         self.training_config.update(config)
 
-    def test_global_model(self, x_test, y_test):
+    def test_global_model(self):
         temp_model = self.create_model_with_updated_weights()
 
         loss_fn = nn.CrossEntropyLoss()
