@@ -44,8 +44,8 @@ experiment.serialize_config(config)
     CREATING MODEL
 '''
 
+
 def model_fn():
-    model = None
     if data_config['dataset_name'] == 'mnist':
         model = model_lib.Mnist_Net(num_class=10)
     else:    
@@ -156,4 +156,5 @@ for epoch in range(fed_config['global_epochs']):
 '''
 print('[INFO] GET EXPERIMENT RESULTS ...')
 experiment_lib.get_experiment_result(server, experiment, data_config['dataset_name'])
+
 
