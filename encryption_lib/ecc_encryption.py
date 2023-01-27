@@ -1,7 +1,7 @@
 import numpy as np
 
 from encryption_lib import *
-from encryption_lib.tinyec import Point, get_curve
+from fastecdsa import keys, curve
 
 MIN_VAL = 1
 MAX_VAL = 18
@@ -9,7 +9,7 @@ MAX_VAL = 18
 
 class EccEncryption:
     def __init__(self, nb_client, mtx_size) -> None:
-        self.curve = get_curve('small_ec')
+        self.curve = curve.P192
         self.mtx_size = mtx_size
         self.nb_client = nb_client
 
