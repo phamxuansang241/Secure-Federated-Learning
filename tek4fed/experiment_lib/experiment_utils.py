@@ -1,6 +1,7 @@
 import shutil
 from pathlib import Path
 import json
+import yaml
 import torch
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
@@ -57,7 +58,7 @@ def get_experiment_result(server, experiment, dataset_name):
         data.update(report_dict)
         json.dump(data, f, indent=4)
         
-    print(report_dict)
+    print(print(yaml.dump(report_dict, default_flow_style=False)))
 
 
 class Experiment:

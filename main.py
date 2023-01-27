@@ -22,12 +22,12 @@ data_config = config['data_config']
 fed_config = config['fed_config']
 dp_config = config['dp_config']
 
-print('Overwrite experiment mode: ', global_config['overwrite_experiment'])
-
 
 """
     SETTING EXPERIMENT
 """
+
+print('Overwrite experiment mode: ', global_config['overwrite_experiment'])
 
 experiment_config = {
     'name': global_config['name'],
