@@ -42,6 +42,14 @@ def flatten_weight(weights):
     return weights_flatten_vector
 
 
+def weight_to_mtx(weights, mtx_size):
+    weights_flatten_vector = flatten_weight(weights)
+    weights_flatten_vector.resize(mtx_size*mtx_size, refcheck=False)
+    weights_mtx = weights_flatten_vector.reshape(mtx_size, mtx_size)
+
+    return weights_mtx
+
+
 def split_weight(weights_flatten_vector, weights_shape):
     weights_split = []
     start = 0

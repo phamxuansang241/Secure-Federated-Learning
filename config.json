@@ -1,6 +1,6 @@
 {
     "global_config": {
-        "name": "Test",
+        "name": "Test New",
         "overwrite_experiment": true,
         "device": "cuda",
         "compress_digit": 15,

@@ -1,18 +1,18 @@
-from crypto_lib import *
-from tinyec import registry
-from tinyec.ec import SubGroup, Curve, Point
+import numpy as np
+
+from encryption_lib import *
+from encryption_lib.tinyec import Point, get_curve
 
 MIN_VAL = 1
 MAX_VAL = 18
 
 
-class EccCrypto:
+class EccEncryption:
     def __init__(self, nb_client, mtx_size) -> None:
-        self.curve = registry.get_curve('secp192r1')
+        self.curve = get_curve('small_ec')
         self.mtx_size = mtx_size
         self.nb_client = nb_client
-        
-        self.weight_mtx = {}
+
         # initialize private parameters for clients
         self.client_private_parameter = {
             'm_i': {}, 'n_i': {},
@@ -46,7 +46,9 @@ class EccCrypto:
         }
 
         self.server_decoded_message = {
-            'R': None, 'S': None, 'M': None, 'N': None
+            'RR': None, 'SS': None,
+            'M': np.zeros((self.mtx_size, self.mtx_size)),
+            'N': np.zeros((self.mtx_size, self.mtx_size))
         }
 
         self.server_sum_weight = None
@@ -67,11 +69,12 @@ class EccCrypto:
                 self.client_private_key[type_key][client_index] = generate_matrix(self.mtx_size, MIN_VAL, MAX_VAL)
 
     def initialize_client_public_key(self):
-        list_type_key = ['P_i', 'Q_i', 'C_i', 'D_i']
+        list_type_public_key = ['P_i', 'Q_i', 'C_i', 'D_i']
+        list_type_private_key = ['p_i', 'q_i', 'c_i', 'd_i']
         for client_index in range(self.nb_client):
-            for type_key in list_type_key:
-                self.client_public_key[type_key][client_index] = ecc_multiply_matrix_with_point(
-                    self.client_private_key[type_key][client_index], self.mtx_size, self.curve
+            for type_public_key, type_private_key in zip(list_type_public_key, list_type_private_key):
+                self.client_public_key[type_public_key][client_index] = ecc_multiply_matrix_with_point(
+                    self.client_private_key[type_private_key][client_index], self.mtx_size, self.curve
                 )
 
     def calculate_server_public_key(self):
@@ -115,11 +118,9 @@ class EccCrypto:
                 self.client_private_key['p_i'][client_index], self.server_public_key['Q'], 
                 self.mtx_size, self.curve
             )
-            self.client_encoded_message['R_i'][client_index] = ecc_add_pointmatrix_with_pointmatrix(
-                ri_G, ecc_subtract_pointmatrix_with_pointmatrix(
-                    qi_P, pi_Q, 
-                    self.mtx_size, self.curve
-                ),
+            temp = ecc_add_pointmatrix_with_pointmatrix(ri_G, qi_P, self.mtx_size, self.curve)
+            self.client_encoded_message['R_i'][client_index] = ecc_subtract_pointmatrix_with_pointmatrix(
+                temp, pi_Q,
                 self.mtx_size, self.curve
             )
 
@@ -136,11 +137,9 @@ class EccCrypto:
                 self.client_private_key['d_i'][client_index], self.server_public_key['C'], 
                 self.mtx_size, self.curve
             )
-            self.client_encoded_message['S_i'][client_index] = ecc_add_pointmatrix_with_pointmatrix(
-                si_G, ecc_subtract_pointmatrix_with_pointmatrix(
-                    ci_D, di_C, 
-                    self.mtx_size, self.curve
-                ),
+            temp = ecc_add_pointmatrix_with_pointmatrix(si_G, ci_D, self.mtx_size, self.curve)
+            self.client_encoded_message['S_i'][client_index] = ecc_subtract_pointmatrix_with_pointmatrix(
+                temp, di_C,
                 self.mtx_size, self.curve
             )
 
@@ -148,18 +147,23 @@ class EccCrypto:
         """
         Decoded messages for phase one include: M, N
         """
+
         # calculate R and S
         for client_index in range(self.nb_client):
+            print(client_index)
             if client_index == 0:
-                self.server_decoded_message['R'] = self.client_encoded_message['R_i'][client_index]
-                self.server_decoded_message['S'] = self.client_encoded_message['S_i'][client_index]
+                print('ds')
+                print(self.client_encoded_message['R_i'][client_index])
+                print(type(self.client_encoded_message['R_i'][client_index]))
+                self.server_decoded_message['RR'] = self.client_encoded_message['R_i'][client_index]
+                self.server_decoded_message['SS'] = self.client_encoded_message['S_i'][client_index]
             else:
-                self.server_decoded_message['R'] = ecc_add_pointmatrix_with_pointmatrix(
-                    self.server_decoded_message['R'], self.client_encoded_message['R_i'][client_index], 
+                self.server_decoded_message['RR'] = ecc_add_pointmatrix_with_pointmatrix(
+                    self.server_decoded_message['RR'], self.client_encoded_message['R_i'][client_index],
                     self.mtx_size, self.curve
                 )
-                self.server_decoded_message['S'] = ecc_add_pointmatrix_with_pointmatrix(
-                    self.server_decoded_message['S'], self.client_encoded_message['S_i'][client_index], 
+                self.server_decoded_message['SS'] = ecc_add_pointmatrix_with_pointmatrix(
+                    self.server_decoded_message['SS'], self.client_encoded_message['S_i'][client_index],
                     self.mtx_size, self.curve
                 )
         
@@ -174,7 +178,6 @@ class EccCrypto:
         self.server_decoded_message['M'] = self.server_decoded_message['M'] - r_pred
         self.server_decoded_message['N'] = self.server_decoded_message['N'] - s_pred
 
-
     def predict_r_s(self):
         """
         predicting r and s for phase one
@@ -186,11 +189,11 @@ class EccCrypto:
             for j in range(self.mtx_size):
                 point_r = Point(
                     self.curve, 
-                    self.server_decoded_message['R'][i, j, 0], self.server_decoded_message['R'][i, j, 1]
+                    self.server_decoded_message['RR'][i, j, 0], self.server_decoded_message['RR'][i, j, 1]
                 )
                 point_s = Point(
                     self.curve, 
-                    self.server_decoded_message['S'][i, j, 0], self.server_decoded_message['S'][i, j, 1]
+                    self.server_decoded_message['SS'][i, j, 0], self.server_decoded_message['SS'][i, j, 1]
                 )
 
                 for di in range(1, MAX_VAL*self.nb_client):

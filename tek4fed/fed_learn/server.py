@@ -1,11 +1,15 @@
-from tek4fed import model_lib, fed_learn
-from typing import Callable
-import numpy as np
+from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models, set_model_weights
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
+from tek4fed import fed_learn
+from tek4fed.compress_params_lib import CompressParams
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch import nn
 from opacus.validators import ModuleValidator
+from math import *
+from typing import Callable
+import numpy as np
+import encryption_lib
 
 
 class Server:
@@ -29,9 +33,7 @@ class Server:
             'batch_size': 32,
             'global_epochs': 5,
             'local_epochs': 1,
-            'lr': 0.001,
-            'verbose': 1,
-            'shuffle': True
+            'lr': 0.001
         }
 
         # Initialize the global model's weights
@@ -41,12 +43,13 @@ class Server:
         """
             GET MODEL INFORMATION
         """
-        weights_shape, total_params = model_lib.get_model_infor(temp_model)
+        self.model_infor = {'weights_shape': (get_model_infor(temp_model))[0],
+                            'total_params': (get_model_infor(temp_model))[1]}
 
         print('-' * 100)
         print("[INFO] MODEL INFORMATION ...")
-        print("\t Model Weight Shape: ", weights_shape)
-        print("\t Total Params of model: ", total_params)
+        print("\t Model Weight Shape: ", self.model_infor['weights_shape'])
+        print("\t Total Params of model: ", self.model_infor['total_params'])
         print()
 
         self.dp_config = dp_config
@@ -57,8 +60,8 @@ class Server:
             'loss': [], 'accuracy': []
         }
 
-        self.global_model_weights = model_lib.get_model_weights(temp_model)
-        model_lib.get_rid_of_models(temp_model)
+        self.global_model_weights = get_model_weights(temp_model)
+        get_rid_of_models(temp_model)
 
         # Initialize the client with differential privacy or not
         if not global_config['dp_mode']:
@@ -96,8 +99,7 @@ class Server:
 
     def create_model_with_updated_weights(self):
         temp_model = self.model_fn()
-        model_lib.set_model_weights(temp_model, self.global_model_weights,
-                                    used_device=self.device)
+        set_model_weights(temp_model, self.global_model_weights, used_device=self.device)
         return temp_model
 
     def send_model(self, client):
@@ -109,8 +111,15 @@ class Server:
         # Reset epoch losses
         self.epoch_losses.clear()
 
+    def select_clients(self):
+        nb_clients_to_use = max(int(self.nb_clients * self.client_fraction), 1)
+        client_indices = np.arange(self.nb_clients)
+        np.random.shuffle(client_indices)
+        selected_client_indices = client_indices[:nb_clients_to_use]
+        return np.asarray(self.clients)[selected_client_indices]
+
     def receive_results(self, client):
-        client_weights = model_lib.get_model_weights(client.model)
+        client_weights = get_model_weights(client.model)
 
         self.client_model_weights.append(client_weights)
         client.reset_model()
@@ -126,6 +135,77 @@ class Server:
 
     def update_training_config(self, config: dict):
         self.training_config.update(config)
+
+    def train_fed_model(self):
+        compress_params = CompressParams(self.training_config['compress_digit'])
+        print('\t Compress number:', compress_params.compress_number)
+
+        for epoch in range(self.training_config['global_epochs']):
+            print('[TRAINING] Global Epoch {0} starts ...'.format(epoch))
+
+            self.init_for_new_epoch()
+            selected_clients = self.select_clients()
+            clients_ids = [c.index for c in selected_clients]
+            print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
+
+            for client in selected_clients:
+                print('\t Client {} is starting the training'.format(client.index))
+
+                if self.training_config['dp_mode']:
+                    if client.current_iter > client.max_allow_iter:
+                        break
+
+                set_model_weights(client.model, self.global_model_weights, client.device)
+                client_losses = client.edge_train()
+
+                print('\t\t Encoding parameters ...')
+                compress_params.encode_model(client=client)
+
+                self.epoch_losses.append(client_losses[-1])
+
+            decoded_weights = compress_params.decode_model(selected_clients)
+            self.client_model_weights = decoded_weights.copy()
+            self.summarize_weights()
+
+            epoch_mean_loss = np.mean(self.epoch_losses)
+            self.global_train_losses.append(epoch_mean_loss)
+            print('\tLoss (client mean): {0}'.format(self.global_train_losses[-1]))
+
+            # testing current model_lib and save weights
+            global_test_results = self.test_global_model()
+            print("\t----- Evaluating on server's test dataset -----")
+
+            test_loss = global_test_results['loss']
+            test_acc = global_test_results['accuracy']
+            print('{0}: {1}'.format('\tLoss', test_loss))
+            print('{0}: {1}'.format('\tAccuracy', test_acc))
+            print('-' * 100)
+
+    def train_fed_encryption(self):
+        mtx_size = round(sqrt(self.model_infor['total_params']))
+        print(mtx_size)
+        encrypt = encryption_lib.EccEncryption(self.nb_clients, mtx_size)
+        encrypt.calculate_server_public_key()
+
+        for epoch in range(self.training_config['global_epochs']):
+            print('[TRAINING] Global Epoch {0} starts ...'.format(epoch))
+
+            self.init_for_new_epoch()
+            selected_clients = self.select_clients()
+            clients_ids = [c.index for c in selected_clients]
+            print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
+
+            for client in selected_clients:
+                print('\t Client {} is starting the training'.format(client.index))
+                set_model_weights(client.model, self.global_model_weights, client.device)
+                client_losses = client.edge_train()
+                self.epoch_losses.append(client_losses[-1])
+
+                encrypt.calculate_encoded_message_phase_one()
+
+            encrypt.calculate_decoded_message_phase_one()
+            # self.summarize_weights()
+
 
     def test_global_model(self):
         temp_model = self.create_model_with_updated_weights()
@@ -158,26 +238,19 @@ class Server:
         for metric_name, value in results_dict.items():
             self.global_test_metrics[metric_name].append(value)
 
-        model_lib.get_rid_of_models(temp_model)
+        get_rid_of_models(temp_model)
         return results_dict
-
-    def select_clients(self):
-        nb_clients_to_use = max(int(self.nb_clients * self.client_fraction), 1)
-        client_indices = np.arange(self.nb_clients)
-        np.random.shuffle(client_indices)
-        selected_client_indices = client_indices[:nb_clients_to_use]
-        return np.asarray(self.clients)[selected_client_indices]
 
     def save_model_weights(self, path):
         temp_model = self.create_model_with_updated_weights()
         torch.save(temp_model, str(path))
-        model_lib.get_rid_of_models(temp_model)
+        get_rid_of_models(temp_model)
 
     def load_model_weights(self, path, by_name: bool = False):
         temp_model = self.create_model_with_updated_weights()
         temp_model.load_weights(str(path), by_name=by_name)
         self.global_model_weights = temp_model.get_weights()
-        model_lib.get_rid_of_models(temp_model)
+        get_rid_of_models(temp_model)
 
     def receive_data(self, x, y):
         self.x_test = x

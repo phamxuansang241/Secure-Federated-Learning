@@ -1,6 +1,6 @@
-import torch
 from tek4fed import model_lib
 from typing import Callable
+import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import Adam
 from torch import nn

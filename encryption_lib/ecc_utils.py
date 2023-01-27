@@ -1,5 +1,5 @@
 import numpy as np
-from tinyec.ec import SubGroup, Curve, Point
+from encryption_lib.tinyec import Point
 
 
 def generate_invertible_matrix(mtx_size):
@@ -41,17 +41,19 @@ def ecc_multiply_matrix_with_point(mtx, mtx_size, curve):
            [[ 5,  8], [10, 15], [12,  1]]])
     """
     # transform matrix to vector
-    vtc = np.reshape(mtx, -1)
+    vtc = mtx.flatten()
 
     # multiply vector with generator point of the curve
     temp_point_vtc = vtc * curve.g
-    
+
     # get list form of temp point
     res_point_vtc = []
     for i in range(mtx_size**2):
-        res_point_vtc.append([temp_point_vtc[0][i].x, temp_point_vtc[0][i].y])
+        res_point_vtc.append([temp_point_vtc[i].x, temp_point_vtc[i].y])
 
     res_point_mtx = np.array(res_point_vtc).reshape(mtx_size, mtx_size, -1)
+
+    # print(res_point_mtx)
     return res_point_mtx
 
 
@@ -71,6 +73,7 @@ def ecc_add_pointmatrix_with_pointmatrix(point_mtx_a, point_mtx_b, mtx_size, cur
     res_point_mtx = np.array(res_point_mtx).reshape(mtx_size, mtx_size, -1)
     return res_point_mtx
 
+
 def ecc_subtract_pointmatrix_with_pointmatrix(point_mtx_a, point_mtx_b, mtx_size, curve):
     """
     Subtracting a matrix of points (point_mtx_a) by a matrix of points (point_mtx_b)
@@ -86,6 +89,7 @@ def ecc_subtract_pointmatrix_with_pointmatrix(point_mtx_a, point_mtx_b, mtx_size
 
     res_point_mtx = np.array(res_point_mtx).reshape(mtx_size, mtx_size, -1)
     return res_point_mtx
+
 
 def ecc_multiply_matrix_with_pointmatrix(mtx, point_mtx, mtx_size, curve):
     """

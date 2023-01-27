@@ -81,7 +81,8 @@ class Experiment:
 
     def setup_experiment_folder_path(self):
         experiment_name = date.today().strftime("%b-%d-%Y") + '-' + self.experiment_config['name']
-        experiment_folder_path = Path(__file__).resolve().parent / 'experiments' / self.experiment_config['dataset_name'] / experiment_name
+        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' / self.experiment_config['dataset_name'] / experiment_name
+        print(experiment_folder_path)
         return experiment_folder_path
 
     def serialize_config(self, config):

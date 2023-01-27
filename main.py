@@ -44,6 +44,7 @@ experiment.serialize_config(config)
 """
 
 training_config = {
+    'compress_digit': global_config['compress_digit'],
     'dataset_name': data_config['dataset_name'],
     'dp_mode': global_config['dp_mode'],
     'batch_size': fed_config['batch_size'], 
@@ -73,55 +74,13 @@ server.setup()
     TRAINING MODEL
 """
 print('[INFO] TRAINING MODEL ...')
-compress_params = CompressParams(global_config['compress_digit'])
-print('\t Compress number:', compress_params.compress_number)
+server.train_fed_encryption()
 
-for epoch in range(fed_config['global_epochs']):
-    print('[INFO] Global Epoch {0} is starting ...'.format(epoch))
+with open(str(experiment.train_hist_path), 'w') as f:
+    test_dict = copy.deepcopy(server.global_test_metrics)
+    json.dump(test_dict, f)
 
-    server.init_for_new_epoch()
-    selected_clients = server.select_clients()
-    clients_ids = [c.index for c in selected_clients]
-    print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
-
-    for client in selected_clients:
-        print('\t Client {} is starting the training'.format(client.index))
-        
-        if global_config['dp_mode']:
-            if client.current_iter > client.max_allow_iter:
-                break
-
-        set_model_weights(client.model, server.global_model_weights, client.device)
-        client_losses = client.edge_train()
-
-        print('\t\t Encoding parameters ...')
-        compress_params.encode_model(client=client)
-
-        server.epoch_losses.append(client_losses[-1])
-
-    decoded_weights = compress_params.decode_model(selected_clients)
-    server.client_model_weights = decoded_weights.copy()
-    server.summarize_weights()
-
-    epoch_mean_loss = np.mean(server.epoch_losses)
-    server.global_train_losses.append(epoch_mean_loss)
-    print('\tLoss (client mean): {0}'.format(server.global_train_losses[-1]))
-
-    # testing current model_lib and save weights
-    global_test_results = server.test_global_model()
-    print("\t----- Evaluating on server's test dataset -----")
-
-    test_loss = global_test_results['loss']
-    test_acc = global_test_results['accuracy']
-    print('{0}: {1}'.format('\tLoss', test_loss))
-    print('{0}: {1}'.format('\tAccuracy', test_acc))
-    print('-'*100)
-
-    with open(str(experiment.train_hist_path), 'w') as f:
-        test_dict = copy.deepcopy(server.global_test_metrics)
-        json.dump(test_dict, f)
-
-    server.save_model_weights(experiment.global_weight_path)
+server.save_model_weights(experiment.global_weight_path)
 
 
 '''
