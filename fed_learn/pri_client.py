@@ -1,9 +1,6 @@
 import torch
-import dp_lib
+from tek4fed import dp_lib
 import model_lib
-import fed_learn
-import numpy as np
-import math
 from typing import Callable
 from torch.utils.data import DataLoader
 from torch.utils.data import TensorDataset
@@ -98,7 +95,6 @@ class PriClient:
         # print(self.model)
         losses = []
 
-        local_allow_iter = None
         if self.current_iter + self.local_epochs*len(self.data_loader) <= self.max_allow_iter:
             local_allow_iter = self.local_epochs*len(self.data_loader)
         else:
@@ -162,15 +158,6 @@ class PriClient:
 
     def receive_and_init_model(self, model_fn: Callable, model_weights):
         self.init_model(model_fn, model_weights)
-
-    def encode_compress_model(self, compress_nb):
-        client_weights = model_lib.get_model_weights(self.model)
-        weights_shape, _ = model_lib.get_model_infor(self.model)
-
-        flatten_weights = model_lib.flatten_weight(client_weights)
-        self.ceil_max_weight = math.ceil(np.max(np.abs(flatten_weights)))
-        flatten_encoded_weights = np.ceil((flatten_weights*compress_nb) / self.ceil_max_weight)
-        self.encoded_weights = model_lib.split_weight(flatten_encoded_weights, weights_shape)
 
     def reset_model(self):
         model_lib.get_rid_of_models(self.model)

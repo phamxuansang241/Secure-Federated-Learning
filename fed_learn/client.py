@@ -1,13 +1,10 @@
 import torch
 import model_lib
-import numpy as np
-import math
 from typing import Callable
 from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import Adam
 from torch import nn
 import time
-from opacus.accountants.utils import get_noise_multiplier
 import gc
 
 
@@ -25,9 +22,6 @@ class Client:
         self.criterion = None
         self.lr = None
 
-        self.encoded_weights = None
-        self.ceil_max_weight = None
-
     def setup(self, **client_config):
         """Set up the configuration of each client"""
         batch_size = client_config['training_config']['batch_size']
@@ -44,17 +38,14 @@ class Client:
         self.optimizer = Adam(self.model.parameters(), lr=self.lr)
         self.criterion = nn.CrossEntropyLoss()
 
-    def init_model(self, model_fn: Callable, model_weights):
-        temp_model = model_fn().to(self.device)
-        model_lib.set_model_weights(temp_model, model_weights, used_device=self.device)
-        self.model = temp_model
-
     def receive_data(self, x, y):
         self.x_train = x
         self.y_train = y
 
     def receive_and_init_model(self, model_fn: Callable, model_weights):
-        self.init_model(model_fn, model_weights)
+        temp_model = model_fn().to(self.device)
+        model_lib.set_model_weights(temp_model, model_weights, used_device=self.device)
+        self.model = temp_model
 
     def edge_train(self):
         if self.model is None:
@@ -68,11 +59,6 @@ class Client:
         losses = []
 
         for e in range(0, self.local_epochs):
-            # initialize the total training and validation loss
-            total_train_loss = 0
-            # initialize the number of correct predictions iin the training
-            train_correct = 0
-
             # loop over the training set
             for (x_batch, y_batch) in self.data_loader:
                 # send the input to the device

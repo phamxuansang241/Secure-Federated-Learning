@@ -25,8 +25,7 @@ def get_model_weights(model):
 
 def get_model_infor(model):
     model_weights = model_lib.get_model_weights(model)
-    weights_shape = [model_weights[i].shape
-                    for i in range(len(model_weights))]
+    weights_shape = [model_weights[i].shape for i in range(len(model_weights))]
     total_params = sum([np.prod(weights_shape[i]) for i in range(len(weights_shape))])
 
     return weights_shape, total_params
@@ -62,3 +61,14 @@ def get_rid_of_models(model=None):
     if model is not None:
         del model
     gc.collect()
+
+
+def get_model_function(dataset_name):
+    def model_function():
+        if dataset_name == 'mnist':
+            model = model_lib.Mnist_Net(num_class=10)
+        else:
+            model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
+        return model
+
+    return model_function

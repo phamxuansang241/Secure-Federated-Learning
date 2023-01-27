@@ -12,10 +12,10 @@ from opacus.validators import ModuleValidator
 class Server:
     def __init__(self, model_fn: Callable,
                  weight_summarizer: WeightSummarizer,
-                 global_config={},
-                 fed_config={},
-                 dp_config={}):
+                 global_config=None, fed_config=None, dp_config=None):
 
+        if fed_config is None:
+            fed_config = {}
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.x_test = None
         self.y_test = None
@@ -38,6 +38,17 @@ class Server:
         # Initialize the global model's weights
         self.model_fn = model_fn
         temp_model = self.model_fn()
+
+        """
+            GET MODEL INFORMATION
+        """
+        weights_shape, total_params = model_lib.get_model_infor(temp_model)
+
+        print('-' * 100)
+        print("[INFO] MODEL INFORMATION ...")
+        print("\t Model Weight Shape: ", weights_shape)
+        print("\t Total Params of model: ", total_params)
+        print()
 
         self.dp_config = dp_config
         if global_config['dp_mode'] and not ModuleValidator.is_valid(temp_model):

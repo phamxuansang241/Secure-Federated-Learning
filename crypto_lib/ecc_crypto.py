@@ -55,8 +55,8 @@ class EccCrypto:
         S_mtx, S_invert_mtx = generate_invertible_matrix(self.mtx_size)
 
         for client_index in range(self.nb_client):
-            self.client_private_parameter['m_i'][client_index], self.private_parameter['n_i'][client_index] = \
-            generate_mi_ni_matrix_client(S_mtx, S_invert_mtx, self.mtx_size, MIN_VAL, MAX_VAL)
+            self.client_private_parameter['m_i'][client_index], self.client_private_parameter['n_i'][client_index] = \
+                generate_mi_ni_matrix_client(S_mtx, S_invert_mtx, self.mtx_size, MIN_VAL, MAX_VAL)
             self.client_private_parameter['r_i'][client_index] = generate_matrix(self.mtx_size, MIN_VAL, MAX_VAL)
             self.client_private_parameter['s_i'][client_index] = generate_matrix(self.mtx_size, MIN_VAL, MAX_VAL)
 
@@ -93,7 +93,7 @@ class EccCrypto:
         Encoded messages for phase one include: A_i, B_i, R_i, S_i 
         for each client
         """
-        for client_index in range(self):
+        for client_index in range(self.nb_client):
             # calculate A_i
             self.client_encoded_message['A_i'][client_index] = \
                 self.client_private_parameter['m_i'][client_index] + self.client_private_parameter['r_i'][client_index]
@@ -143,7 +143,6 @@ class EccCrypto:
                 ),
                 self.mtx_size, self.curve
             )
-
 
     def calculate_decoded_message_phase_one(self):
         """

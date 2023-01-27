@@ -5,6 +5,7 @@ import torch
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 
+
 def args_as_json(args):
     json_str = json.dumps(args.__dict__, sort_keys=True, indent=4)
     return json_str
@@ -40,9 +41,8 @@ def get_experiment_result(server, experiment, dataset_name):
             predictions.extend(pred_np)
 
     predictions = np.array(predictions)
-    y_test = server.y_test.detach().cpu().numpy()
+    y_test = server.y_test
 
-    report_dict = None
     if num_class[dataset_name] > 2:
         score = classification_report(y_test, predictions.argmax(axis=1), output_dict=True)
         report_dict = {'report': score}
@@ -59,10 +59,9 @@ def get_experiment_result(server, experiment, dataset_name):
         f_1 = (2 * recall * precision) / (recall + precision)
 
         report_dict = {'TN': tn, 'FP': fp, 'FN': fn, 'TP': tp,
-                    'Accuracy': acc, 'Recall (TPR)': recall,
-                    'Precision': precision, 'FPR (Fall-out)': fpr,
-                    'DRN': drn, 'F_1 score': f_1
-                    }
+                       'Accuracy': acc, 'Recall (TPR)': recall,
+                       'Precision': precision, 'FPR (Fall-out)': fpr,
+                       'DRN': drn, 'F_1 score': f_1}
         
     with open(str(experiment.train_hist_path), 'r+') as f:
         data = json.load(f)
@@ -93,4 +92,3 @@ class Experiment:
         config_json_object = json.dumps(config, indent=4)
         with open(str(self.config_json_path), 'w') as f:
             f.write(config_json_object)
-

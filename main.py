@@ -1,10 +1,9 @@
-import fed_learn
+from fed_learn import get_args, Server, FedAvg
 import model_lib
-import data_lib
-import compress_params_lib
-import experiment_lib
+from data_lib import DataSetup
+from tek4fed.compress_params_lib import CompressParams
+from tek4fed.experiment_lib import Experiment, get_experiment_result
 import copy
-import json
 import numpy as np
 from pathlib import Path
 import json
@@ -15,7 +14,7 @@ print("*** FIX VER 11")
 """
     ARGUMENT PARSER AND UNPACK JSON OBJECT
 """
-args = fed_learn.get_args()
+args = get_args()
 
 with open(args.config_path, 'r') as openfile:
     config = json.load(openfile)
@@ -37,21 +36,8 @@ global_config['name'] = today + '_' + global_config['name'] + '_'
 
 
 experiment_folder_path = Path(__file__).resolve().parent / 'experiments' / data_config['dataset_name'] / global_config['name']
-experiment = experiment_lib.Experiment(experiment_folder_path,  global_config['overwrite_experiment'])
+experiment = Experiment(experiment_folder_path, global_config['overwrite_experiment'])
 experiment.serialize_config(config)
-
-'''
-    CREATING MODEL
-'''
-
-
-def model_fn():
-    if data_config['dataset_name'] == 'mnist':
-        model = model_lib.Mnist_Net(num_class=10)
-    else:    
-        model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
-
-    return model
 
 
 """
@@ -59,6 +45,7 @@ def model_fn():
 """
 
 training_config = {
+    'dataset_name': data_config['dataset_name'],
     'dp_mode': global_config['dp_mode'],
     'batch_size': fed_config['batch_size'], 
     'global_epochs': fed_config['global_epochs'], 
@@ -66,8 +53,8 @@ training_config = {
     }
 
 
-weight_summarizer = fed_learn.FedAvg()
-server = fed_learn.Server(model_fn, weight_summarizer, training_config, fed_config, dp_config)
+weight_summarizer = FedAvg()
+server = Server(model_lib.get_model_function(data_config['dataset_name']), weight_summarizer, training_config, fed_config, dp_config)
 
 server.update_training_config(training_config)
 server.create_clients()
@@ -75,7 +62,7 @@ server.create_clients()
 """
     PREPROCESSING DATA AND DISTRIBUTING DATA
 """
-data_lib.DataSetup(data_config).setup(server)
+DataSetup(data_config).setup(server)
 
 
 """
@@ -84,23 +71,10 @@ data_lib.DataSetup(data_config).setup(server)
 server.setup()
 
 """
-    GET MODEL INFORMATION
-"""
-temp_model = model_fn()
-weights_shape, total_params = model_lib.get_model_infor(temp_model)
-
-print('-' * 100)
-print("[INFO] MODEL INFORMATION ...")
-print("\t Model Weight Shape: ", weights_shape)
-print("\t Total Params of model: ", total_params)
-print()
-
-
-"""
     TRAINING MODEL
 """
 print('[INFO] TRAINING MODEL ...')
-compress_params = compress_params_lib.CompressParams(global_config['compress_digit'])
+compress_params = CompressParams(global_config['compress_digit'])
 print('\t Compress number:', compress_params.compress_number)
 
 for epoch in range(fed_config['global_epochs']):
@@ -140,8 +114,8 @@ for epoch in range(fed_config['global_epochs']):
 
     test_loss = global_test_results['loss']
     test_acc = global_test_results['accuracy']
-    print('{0}: {1}'.format('\tLoss: ', test_loss))
-    print('{0}: {1}'.format('\tAccuracy: ', test_acc))
+    print('{0}: {1}'.format('\tLoss', test_loss))
+    print('{0}: {1}'.format('\tAccuracys', test_acc))
     print('-'*100)
 
     with open(str(experiment.train_hist_path), 'w') as f:
@@ -155,6 +129,6 @@ for epoch in range(fed_config['global_epochs']):
     EVALUATING MODEL
 '''
 print('[INFO] GET EXPERIMENT RESULTS ...')
-experiment_lib.get_experiment_result(server, experiment, data_config['dataset_name'])
+get_experiment_result(server, experiment, data_config['dataset_name'])
 
 
