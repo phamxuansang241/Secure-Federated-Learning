@@ -1,4 +1,4 @@
-import data_lib
+from tek4fed import data_lib
 import numpy as np
 import math
 

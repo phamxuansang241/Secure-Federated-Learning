@@ -1,13 +1,11 @@
-from fed_learn import get_args, Server, FedAvg
-import model_lib
-from data_lib import DataSetup
+from tek4fed.fed_learn import get_args, Server, FedAvg
+from tek4fed.model_lib import get_model_function, set_model_weights
+from tek4fed.data_lib import DataSetup
 from tek4fed.compress_params_lib import CompressParams
 from tek4fed.experiment_lib import Experiment, get_experiment_result
 import copy
 import numpy as np
-from pathlib import Path
 import json
-from datetime import date
 
 
 print("*** FIX VER 11")
@@ -31,12 +29,13 @@ print('Overwrite experiment mode: ', global_config['overwrite_experiment'])
     SETTING EXPERIMENT
 """
 
-today = date.today().strftime("%b-%d-%Y")
-global_config['name'] = today + '_' + global_config['name'] + '_'
+experiment_config = {
+    'name': global_config['name'],
+    'dataset_name': data_config['dataset_name'],
+    'overwrite_experiment': global_config['overwrite_experiment']
+}
 
-
-experiment_folder_path = Path(__file__).resolve().parent / 'experiments' / data_config['dataset_name'] / global_config['name']
-experiment = Experiment(experiment_folder_path, global_config['overwrite_experiment'])
+experiment = Experiment(experiment_config)
 experiment.serialize_config(config)
 
 
@@ -54,7 +53,7 @@ training_config = {
 
 
 weight_summarizer = FedAvg()
-server = Server(model_lib.get_model_function(data_config['dataset_name']), weight_summarizer, training_config, fed_config, dp_config)
+server = Server(get_model_function(data_config['dataset_name']), weight_summarizer, training_config, fed_config, dp_config)
 
 server.update_training_config(training_config)
 server.create_clients()
@@ -92,7 +91,7 @@ for epoch in range(fed_config['global_epochs']):
             if client.current_iter > client.max_allow_iter:
                 break
 
-        model_lib.set_model_weights(client.model, server.global_model_weights, client.device)
+        set_model_weights(client.model, server.global_model_weights, client.device)
         client_losses = client.edge_train()
 
         print('\t\t Encoding parameters ...')
@@ -115,7 +114,7 @@ for epoch in range(fed_config['global_epochs']):
     test_loss = global_test_results['loss']
     test_acc = global_test_results['accuracy']
     print('{0}: {1}'.format('\tLoss', test_loss))
-    print('{0}: {1}'.format('\tAccuracys', test_acc))
+    print('{0}: {1}'.format('\tAccuracy', test_acc))
     print('-'*100)
 
     with open(str(experiment.train_hist_path), 'w') as f:
@@ -130,5 +129,3 @@ for epoch in range(fed_config['global_epochs']):
 '''
 print('[INFO] GET EXPERIMENT RESULTS ...')
 get_experiment_result(server, experiment, data_config['dataset_name'])
-
-

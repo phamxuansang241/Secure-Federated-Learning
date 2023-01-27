@@ -1,6 +1,5 @@
 import torch
-from tek4fed import dp_lib
-import model_lib
+from tek4fed import dp_lib, model_lib
 from typing import Callable
 from torch.utils.data import DataLoader
 from torch.utils.data import TensorDataset

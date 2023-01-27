@@ -1,4 +1,4 @@
-import model_lib
+from tek4fed import model_lib
 import torch
 import gc
 import numpy as np

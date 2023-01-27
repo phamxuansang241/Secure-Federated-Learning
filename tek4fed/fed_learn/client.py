@@ -1,5 +1,5 @@
 import torch
-import model_lib
+from tek4fed import model_lib
 from typing import Callable
 from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import Adam

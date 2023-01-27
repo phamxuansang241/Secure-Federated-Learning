@@ -4,18 +4,7 @@ import json
 import torch
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
-
-
-def args_as_json(args):
-    json_str = json.dumps(args.__dict__, sort_keys=True, indent=4)
-    return json_str
-
-
-def save_args_as_json(args, path):
-    json_str = args_as_json(args)
-
-    with open(str(path), 'w') as f:
-        f.write(json_str)
+from datetime import date
 
 
 def get_experiment_result(server, experiment, dataset_name):
@@ -66,17 +55,18 @@ def get_experiment_result(server, experiment, dataset_name):
     with open(str(experiment.train_hist_path), 'r+') as f:
         data = json.load(f)
         data.update(report_dict)
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
         
     print(report_dict)
 
 
 class Experiment:
-    def __init__(self, experiment_folder_path: Path, overwrite_if_exists: bool = False):
-        self.experiment_folder_path = experiment_folder_path
+    def __init__(self, experiment_config: dict):
+        self.experiment_config = experiment_config
+        self.experiment_folder_path = self.setup_experiment_folder_path()
 
         if self.experiment_folder_path.is_dir():
-            if overwrite_if_exists:
+            if experiment_config['overwrite_experiment']:
                 shutil.rmtree(str(self.experiment_folder_path))
             else:
                 raise Exception('Experiment already exists')
@@ -87,6 +77,11 @@ class Experiment:
 
         self.train_hist_path = self.experiment_folder_path / 'fed_learn_global_test_results.json'
         self.global_weight_path = self.experiment_folder_path / 'global_model.pth'
+
+    def setup_experiment_folder_path(self):
+        experiment_name = date.today().strftime("%b-%d-%Y") + '-' + self.experiment_config['name']
+        experiment_folder_path = Path(__file__).resolve().parent / 'experiments' / self.experiment_config['dataset_name'] / experiment_name
+        return experiment_folder_path
 
     def serialize_config(self, config):
         config_json_object = json.dumps(config, indent=4)

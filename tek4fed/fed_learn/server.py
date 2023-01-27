@@ -1,8 +1,7 @@
-import model_lib
+from tek4fed import model_lib, fed_learn
 from typing import Callable
 import numpy as np
-import fed_learn
-from fed_learn.weight_summarizer import WeightSummarizer
+from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch import nn

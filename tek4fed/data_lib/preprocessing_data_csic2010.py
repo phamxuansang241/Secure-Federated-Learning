@@ -1,5 +1,5 @@
 import urllib.parse
-import data_lib
+from tek4fed import data_lib
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
