@@ -1,13 +1,13 @@
 {
     "global_config": {
-        "name": "Test New",
+        "name": "Test New 2",
         "overwrite_experiment": true,
         "device": "cuda",
         "compress_digit": 15,
         "dp_mode": false
     },
     "data_config": {
-        "dataset_name": "mnist",
+        "dataset_name": "csic2010",
         "data_sampling_technique": "iid"
     },
     "fed_config": {

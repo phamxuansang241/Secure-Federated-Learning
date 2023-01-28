@@ -1,2 +1,1 @@
-from .ecc_utils import *
-from .ecc_encryption import EccEncryption
+from .ecc_encrypt.ecc_encryption import EccEncryption

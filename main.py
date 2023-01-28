@@ -74,7 +74,7 @@ server.setup()
     TRAINING MODEL
 """
 print('[INFO] TRAINING MODEL ...')
-server.train_fed_encryption()
+server.train_fed_encryption(short_ver=True)
 
 with open(str(experiment.train_hist_path), 'w') as f:
     test_dict = copy.deepcopy(server.global_test_metrics)

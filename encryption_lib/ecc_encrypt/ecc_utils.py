@@ -1,6 +1,5 @@
 import numpy as np
 from fastecdsa.point import Point
-from fastecdsa import keys
 
 
 def generate_invertible_matrix(mtx_size):
@@ -43,10 +42,8 @@ def ecc_multiply_matrix_with_point(mtx, mtx_size, curve):
     """
     # transform matrix to vector
     vtc = mtx.flatten()
-
     # multiply vector with generator point of the curve
     temp_point_vtc = vtc * curve.G
-
     # get list form of temp point
     res_point_vtc = []
     for i in range(mtx_size**2):
@@ -69,6 +66,10 @@ def ecc_add_pointmatrix_with_pointmatrix(point_mtx_a, point_mtx_b, mtx_size, cur
         for j in range(mtx_size):
             point = Point(point_mtx_a[i, j, 0], point_mtx_a[i, j, 1], curve) \
                 + Point(point_mtx_b[i, j, 0], point_mtx_b[i, j, 1], curve)
+            if point.x == 0:
+                print('A: ', point_mtx_a[i, j, 0], point_mtx_a[i, j, 1])
+                print('B: ', point_mtx_b[i, j, 0], point_mtx_b[i, j, 1])
+                print('C: ', point.x, point.y)
             res_point_mtx.append([point.x, point.y])
 
     res_point_mtx = np.array(res_point_mtx).reshape(mtx_size, mtx_size, -1)
@@ -94,7 +95,7 @@ def ecc_subtract_pointmatrix_with_pointmatrix(point_mtx_a, point_mtx_b, mtx_size
 
 def ecc_multiply_matrix_with_pointmatrix(mtx, point_mtx, mtx_size, curve):
     """
-    Multipying a matrix (mtx) with a matrix of point (point_mtx)
+    Multiplying a matrix (mtx) with a matrix of point (point_mtx)
     """
     res_point_mtx = []
     for i in range(mtx_size):

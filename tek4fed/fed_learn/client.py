@@ -62,7 +62,7 @@ class Client:
             # loop over the training set
             for (x_batch, y_batch) in self.data_loader:
                 # send the input to the device
-                (x_batch, y_batch) = (x_batch.float().to(self.device),
+                (x_batch, y_batch) = (x_batch.to(self.device),
                                       y_batch.long().to(self.device))
                 
                 # perform a forward pass and calculate the training loss

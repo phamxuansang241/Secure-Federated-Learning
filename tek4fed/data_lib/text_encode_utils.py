@@ -30,5 +30,5 @@ def encode_data(data, max_len, vocabulary):
                 ix = vocabulary.get(c, 0)  # get index from vocab dictionary, if not in vocab, return 0
                 input_data[dix, counter] = ix
                 counter = counter + 1
-    input_data = input_data.astype(np.float32)
+    input_data = np.int32(input_data)
     return input_data

@@ -1,7 +1,6 @@
 import shutil
 from pathlib import Path
 import json
-import yaml
 import torch
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
@@ -17,21 +16,23 @@ def get_experiment_result(server, experiment, dataset_name):
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     temp_model = torch.load(experiment.global_weight_path).to(device)
-
+    print(experiment.global_weight_path)
     predictions = []
     with torch.no_grad():
         temp_model.eval()
 
-        for (x_batch, _) in server.data_loader:
-            x_batch = x_batch.float().to(device)
-                                
+        y_test = []
+        for (x_batch, y_batch) in server.data_loader:
+            x_batch = x_batch.to(device)
+
             pred = temp_model(x_batch)
             pred_np = pred.detach().cpu().numpy()                
             
             predictions.extend(pred_np)
+            y_test.extend(y_batch)
 
     predictions = np.array(predictions)
-    y_test = server.y_test
+    # y_test = server.y_test
 
     if num_class[dataset_name] > 2:
         score = classification_report(y_test, predictions.argmax(axis=1), output_dict=True)
@@ -52,14 +53,14 @@ def get_experiment_result(server, experiment, dataset_name):
                        'Accuracy': acc, 'Recall (TPR)': recall,
                        'Precision': precision, 'FPR (Fall-out)': fpr,
                        'DRN': drn, 'F_1 score': f_1}
-        
+    # print(report_dict)
+    print(json.dumps(report_dict, indent=4))
+
     with open(str(experiment.train_hist_path), 'r+') as f:
         data = json.load(f)
         data.update(report_dict)
         json.dump(data, f, indent=4)
         
-    print(print(yaml.dump(report_dict, default_flow_style=False)))
-
 
 class Experiment:
     def __init__(self, experiment_config: dict):

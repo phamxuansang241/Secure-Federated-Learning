@@ -76,6 +76,7 @@ class Server:
         # Initialize clients and clients' weights
         self.clients = []
         self.client_model_weights = []
+        self.sum_client_weight = []
 
     def setup(self):
         """Setup all configuration for federated learning"""
@@ -129,8 +130,12 @@ class Server:
             client = self.ClientClass(i)
             self.clients.append(client)
 
-    def summarize_weights(self):
-        new_weights = self.weight_summarizer.process(self.client_model_weights)
+    def summarize_weights(self, encrypt_mode=False):
+
+        if not encrypt_mode:
+            new_weights = self.weight_summarizer.process(self.client_model_weights)
+        else:
+            new_weights = self.weight_summarizer.process_encryption(self.nb_clients, self.sum_client_weight)
         self.global_model_weights = new_weights
 
     def update_training_config(self, config: dict):
@@ -171,21 +176,18 @@ class Server:
             self.global_train_losses.append(epoch_mean_loss)
             print('\tLoss (client mean): {0}'.format(self.global_train_losses[-1]))
 
-            # testing current model_lib and save weights
-            global_test_results = self.test_global_model()
-            print("\t----- Evaluating on server's test dataset -----")
+            # testing current model_lib
+            self.test_global_model()
 
-            test_loss = global_test_results['loss']
-            test_acc = global_test_results['accuracy']
-            print('{0}: {1}'.format('\tLoss', test_loss))
-            print('{0}: {1}'.format('\tAccuracy', test_acc))
-            print('-' * 100)
+    def train_fed_encryption(self, short_ver=False):
+        mtx_size = ceil(sqrt(self.model_infor['total_params']))
 
-    def train_fed_encryption(self):
-        mtx_size = round(sqrt(self.model_infor['total_params']))
-        print(mtx_size)
         encrypt = encryption_lib.EccEncryption(self.nb_clients, mtx_size)
-        encrypt.calculate_server_public_key()
+        encrypt.client_setup_private_params()
+
+        if not short_ver:
+            encrypt.client_setup_keys()
+            encrypt.calculate_server_public_key()
 
         for epoch in range(self.training_config['global_epochs']):
             print('[TRAINING] Global Epoch {0} starts ...'.format(epoch))
@@ -195,17 +197,26 @@ class Server:
             clients_ids = [c.index for c in selected_clients]
             print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
 
+            # perform phase on of the encryption
+            encrypt.perform_phase_one(short_ver)
             for client in selected_clients:
                 print('\t Client {} is starting the training'.format(client.index))
                 set_model_weights(client.model, self.global_model_weights, client.device)
                 client_losses = client.edge_train()
                 self.epoch_losses.append(client_losses[-1])
+                print('\t\t [ECC] Encoding phase two')
+                encrypt.encoded_message_phase_two(client)
 
-                encrypt.calculate_encoded_message_phase_one()
+            print('\t [ECC] Server decoding phase two')
+            self.sum_client_weight = encrypt.decoded_message_phase_two(selected_clients)
+            self.summarize_weights(encrypt_mode=True)
 
-            encrypt.calculate_decoded_message_phase_one()
-            # self.summarize_weights()
+            epoch_mean_loss = np.mean(self.epoch_losses)
+            self.global_train_losses.append(epoch_mean_loss)
+            print('\t Loss (client mean): {0}'.format(self.global_train_losses[-1]))
 
+            # testing current model_lib
+            self.test_global_model()
 
     def test_global_model(self):
         temp_model = self.create_model_with_updated_weights()
@@ -218,7 +229,7 @@ class Server:
             temp_model.eval()
 
             for (x_batch, y_batch) in self.data_loader:
-                (x_batch, y_batch) = (x_batch.float().to(self.device),
+                (x_batch, y_batch) = (x_batch.to(self.device),
                                       y_batch.long().to(self.device))
     
                 pred = temp_model(x_batch)
@@ -239,6 +250,11 @@ class Server:
             self.global_test_metrics[metric_name].append(value)
 
         get_rid_of_models(temp_model)
+        print("\t----- Evaluating on server's test dataset -----")
+        print('{0}: {1}'.format('\tLoss', results_dict['loss']))
+        print('{0}: {1}'.format('\tAccuracy', results_dict['accuracy']))
+        print('-' * 100)
+
         return results_dict
 
     def save_model_weights(self, path):
