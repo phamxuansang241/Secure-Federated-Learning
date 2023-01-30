@@ -14,6 +14,7 @@ class ElGamalEncryption:
         self.p = gen_prime(bit=128)
         self.mtx_size = mtx_size
         self.nb_client = nb_client
+        self.K_mtx = generate_invertible_matrix(self.mtx_size)
 
         # initialize noise matrix for clients
         self.client_noise_mtx = {
@@ -37,6 +38,14 @@ class ElGamalEncryption:
 
         self.client_encoded_message = {
             'M_i': {}, 'H_i': {}, 'S_i': {}
+        }
+
+        self.server_decoded_message = {
+            'S': np.zeros((self.mtx_size, self.mtx_size)), 
+            'Q': np.zeros((self.mtx_size, self.mtx_size)), 
+            'R': [],
+            'M': np.ones((self.mtx_size, self.mtx_size)),
+            'H': np.ones((self.mtx_size, self.mtx_size))
         }
 
     def generate_client_noise_mtx(self):
@@ -102,8 +111,33 @@ class ElGamalEncryption:
         client_weights = get_model_weights(client.model)
         client_weight_mtx = weight_to_mtx(client_weights, self.mtx_size)
 
-        self.client_encoded_message['S_i'][client.index] = np.dot(client_weight_mtx, ) + r_i 
+        self.client_encoded_message['S_i'][client.index] = np.dot(client_weight_mtx, self.K_mtx) + r_i 
+
+    def decoded_message(self, selected_clients):
+        self.server_decoded_message['S'] = np.zeros((self.mtx_size, self.mtx_size))
+        self.server_decoded_message['M'] = np.ones((self.mtx_size, self.mtx_size))
+        self.server_decoded_message['H'] = np.ones((self.mtx_size, self.mtx_size))
+        for client in selected_clients:
+            self.server_decoded_message['S'] = self.server_decoded_message['S'] + self.client_encoded_message['S_i'][client.index]
+            self.server_decoded_message['M'] = np.multiply(self.server_decoded_message['M'], self.client_encoded_message['M_i'][client.index]) % self.p
+            self.server_decoded_message['H'] = np.multiply(self.server_decoded_message['H'], self.client_encoded_message['H_i'][client.index]) % self.p
 
 
+        self.server_decoded_message['R'] = []
+        for row in range(self.mtx_size):
+            for col in range(self.mtx_size):
+                for d in range(0, MAX_VAL*self.nb_client + 1):
+                    g_d = power_mode(self.g, d, self.p)
+
+                    check_val = (self.server_decoded_message['M'][row][col]*self.server_decoded_message['H'][row][col]) % self.p
+                    if g_d == check_val:
+                        self.server_decoded_message['R'].append(check_val)
+
+        self.server_decoded_message['R'] = np.array(self.server_decoded_message['R']).reshape(
+            self.mtx_size, self.mtx_size
+        )
+
+        return np.dot(self.server_decoded_message['S']-self.server_decoded_message['R'], 
+        self.K_mtx)
 
     
