@@ -1,7 +1,9 @@
 from tek4fed.fed_learn import get_args, Server, FedAvg
+from tek4fed.data_lib import DataSetup
 import json
 import encryption_lib
 from tek4fed.model_lib import get_model_function, set_model_weights
+import numpy as np
 
 
 args = get_args()
@@ -30,15 +32,32 @@ server = Server(get_model_function(data_config['dataset_name']), weight_summariz
 
 server.update_training_config(training_config)
 server.create_clients()
+DataSetup(data_config).setup(server)
+server.setup()
 
-
-
-
+mtx_size = 10
 encrypt = encryption_lib.ElGamalEncryption(server.nb_clients, 10)
 
 encrypt.generate_client_noise_mtx()
 encrypt.generate_client_key()
 
-for epoch in int(server.training_config['global_epochs']):
+
+for epoch in range(int(server.training_config['global_epochs'])):
+    server.init_for_new_epoch()
     selected_clients =server.select_clients()
-    encrypt.calculate_server_public_key()
+    encrypt.calculate_server_public_key(selected_clients)
+
+    sum_r_mtx = np.zeros((mtx_size, mtx_size))
+    for client in selected_clients:
+        sum_r_mtx = sum_r_mtx + encrypt.client_noise_mtx['r_i'][client.index]
+        encrypt.encoded_message(client)
+
+    encrypt.decoded_message(selected_clients)
+
+    print()
+    print("Matrix r of cient")
+    print(sum_r_mtx)
+
+    print("Matrix r of server")
+    print(encrypt.server_decoded_message['R'])
+
