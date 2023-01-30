@@ -179,7 +179,7 @@ class Server:
             # testing current model_lib
             self.test_global_model()
 
-    def train_fed_encryption(self, short_ver=False):
+    def train_fed_ecc_encryption(self, short_ver=False):
         mtx_size = ceil(sqrt(self.model_infor['total_params']))
 
         encrypt = encryption_lib.EccEncryption(self.nb_clients, mtx_size)
@@ -209,6 +209,44 @@ class Server:
 
             print('\t [ECC] Server decoding phase two')
             self.sum_client_weight = encrypt.decoded_message_phase_two(selected_clients)
+            self.summarize_weights(encrypt_mode=True)
+
+            epoch_mean_loss = np.mean(self.epoch_losses)
+            self.global_train_losses.append(epoch_mean_loss)
+            print('\t Loss (client mean): {0}'.format(self.global_train_losses[-1]))
+
+            # testing current model_lib
+            self.test_global_model()
+
+    def train_fed_elgamal_encryption(self, short_ver=False):
+        mtx_size = ceil(sqrt(self.model_infor['total_params']))
+
+        encrypt = encryption_lib.ElGamalEncryption(self.nb_clients, mtx_size)
+        encrypt.generate_client_noise_mtx()
+        encrypt.generate_client_key()
+
+
+        for epoch in range(self.training_config['global_epochs']):
+            print('[TRAINING] Global Epoch {0} starts ...'.format(epoch))
+
+
+            self.init_for_new_epoch()
+            selected_clients = self.select_clients()
+            clients_ids = [c.index for c in selected_clients]
+            print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
+
+            encrypt.calculate_server_public_key(selected_clients)
+
+            for client in selected_clients:
+                print('\t Client {} is starting the training'.format(client.index))
+                set_model_weights(client.model, self.global_model_weights, client.device)
+                client_losses = client.edge_train()
+                self.epoch_losses.append(client_losses[-1])
+                print('\t\t [ELGAMAL] Encoding ...')
+                encrypt.encoded_message(client)
+
+            print('\t [ELGAMAL] Server decoding phase two')
+            self.sum_client_weight = encrypt.decoded_message(selected_clients)
             self.summarize_weights(encrypt_mode=True)
 
             epoch_mean_loss = np.mean(self.epoch_losses)

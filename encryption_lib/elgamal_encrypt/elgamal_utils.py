@@ -18,7 +18,7 @@ def generate_invertible_matrix(mtx_size):
         mtx = np.random.randint(low=0, high=50, size=(mtx_size, mtx_size))
     invert_mtx = np.linalg.inv(mtx)
 
-    return invert_mtx
+    return mtx, invert_mtx
 
 
 def is_prime(mrc):

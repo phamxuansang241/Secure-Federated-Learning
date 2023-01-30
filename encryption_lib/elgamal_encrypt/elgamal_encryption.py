@@ -10,11 +10,14 @@ MAX_VAL = 10
 
 class ElGamalEncryption:
     def __init__(self, nb_client, mtx_size) -> None:
-        self.g = int(2)
-        self.p = int(gen_prime(bit=64))
+        self.g = 2
+        self.p = gen_prime(bit=256)
+
+        print('g: ', self.g)
+        print('p: ', self.p)
         self.mtx_size = mtx_size
         self.nb_client = nb_client
-        self.K_mtx = generate_invertible_matrix(self.mtx_size)
+        self.K_mtx, self.invert_K_mtx = generate_invertible_matrix(self.mtx_size)
 
         # initialize noise matrix for clients
         self.client_noise_mtx = {
@@ -69,7 +72,7 @@ class ElGamalEncryption:
 
         for client in selected_clients:
             self.server_public_key['X'] = (self.server_public_key['X']*self.client_public_key['X_i'][client.index]) % self.p
-            self.server_public_key['Y'] = (self.server_public_key['X']*self.client_public_key['Y_i'][client.index]) % self.p
+            self.server_public_key['Y'] = (self.server_public_key['Y']*self.client_public_key['Y_i'][client.index]) % self.p
     
     def encoded_message(self, client):
         """
@@ -95,7 +98,7 @@ class ElGamalEncryption:
                 mi_row_col = (g_row_col * Xy_row_col) % self.p
 
                 hi_row_col = power_mode(self.server_public_key['Y'], x_i, self.p)
-                hi_row_col = inverse_power_mode(hi_row_col, self.p)
+                hi_row_col = inverse_power_mode(hi_row_col, self.p) % self.p
 
                 mi_col.append(mi_row_col)
                 hi_col.append(hi_row_col)
@@ -125,20 +128,26 @@ class ElGamalEncryption:
                 for client in selected_clients:
                     M_row_col = self.client_encoded_message['M_i'][client.index][row][col]
                     H_row_col = self.client_encoded_message['H_i'][client.index][row][col]
-                    r_row_col = (r_row_col * ((M_row_col*H_row_col) % self.p)) % self.p
+                
+                    # print('Row: {}   Col:{}   Client: {}   M_i: {}   H_i: {}'.format(row, col, client.index, M_row_col, H_row_col))
+                    r_row_col = (r_row_col * M_row_col) % self.p
+                    r_row_col = (r_row_col * H_row_col) % self.p
+
+                r_row_col = r_row_col % self.p
                 for d in range(0, MAX_VAL*self.nb_client + 1):
                     g_d = power_mode(self.g, d, self.p)
 
+                    # print(d, g_d, r_row_col)
                     # check_val = (self.server_decoded_message['M'][row][col]*self.server_decoded_message['H'][row][col]) % self.p
                     if g_d == r_row_col:
                         self.server_decoded_message['R'].append(d)
-                        break
+                        
+                        # break
 
         self.server_decoded_message['R'] = np.array(self.server_decoded_message['R']).reshape(
             self.mtx_size, self.mtx_size
         )
 
-        return np.dot(self.server_decoded_message['S']-self.server_decoded_message['R'], 
-        self.K_mtx)
+        return np.dot(self.server_decoded_message['S']-self.server_decoded_message['R'], self.K_mtx)
 
     

@@ -11,7 +11,7 @@
         "data_sampling_technique": "iid"
     },
     "fed_config": {
-        "global_epochs": 5,
+        "global_epochs": 1,
         "local_epochs": 1,
         "nb_clients": 5,
         "fraction": 1.0,
