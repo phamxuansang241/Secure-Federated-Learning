@@ -39,6 +39,6 @@ encrypt = encryption_lib.ElGamalEncryption(server.nb_clients, 10)
 encrypt.generate_client_noise_mtx()
 encrypt.generate_client_key()
 
-for epoch in server.training_config['global_epochs']:
+for epoch in int(server.training_config['global_epochs']):
     selected_clients =server.select_clients()
     encrypt.calculate_server_public_key()
