@@ -13,6 +13,7 @@ class ElGamalEncryption:
         self.g = 2
         self.p = gen_prime(bit=256)
 
+        print('EL-GAMAL encryption ...')
         print('g: ', self.g)
         print('p: ', self.p)
         self.mtx_size = mtx_size

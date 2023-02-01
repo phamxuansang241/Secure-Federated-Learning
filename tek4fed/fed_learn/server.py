@@ -245,7 +245,7 @@ class Server:
                 print('\t\t [ELGAMAL] Encoding ...')
                 encrypt.encoded_message(client)
 
-            print('\t [ELGAMAL] Server decoding phase two')
+            print('\t [ELGAMAL] Server decoding ...')
             self.sum_client_weight = encrypt.decoded_message(selected_clients)
             self.summarize_weights(encrypt_mode=True)
 
