@@ -1,5 +1,5 @@
 from tek4fed.model_lib import get_model_weights, weight_to_mtx, split_weight, get_model_infor
-from encryption_lib.elgamal_encrypt import *
+from tek4fed.encryption_lib.elgamal_encrypt import *
 import numpy as np
 import random as rd
 
@@ -46,7 +46,6 @@ class ElGamalEncryption:
 
         self.server_decoded_message = {
             'S': np.zeros((self.mtx_size, self.mtx_size)), 
-            'Q': np.zeros((self.mtx_size, self.mtx_size)), 
             'R': []
         }
 
@@ -149,6 +148,10 @@ class ElGamalEncryption:
             self.mtx_size, self.mtx_size
         )
 
-        return np.dot(self.server_decoded_message['S']-self.server_decoded_message['R'], self.K_mtx)
+        server_sum_weight = np.dot(self.server_decoded_message['S']-self.server_decoded_message['R'], self.invert_K_mtx)
+
+        weights_shape, _ = get_model_infor(selected_clients[0].model)
+
+        return split_weight(server_sum_weight.flatten(), weights_shape)
 
     

@@ -2,6 +2,7 @@ from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_mod
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed import fed_learn
 from tek4fed.compress_params_lib import CompressParams
+from tek4fed.encryption_lib import EccEncryption, ElGamalEncryption
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch import nn
@@ -9,7 +10,7 @@ from opacus.validators import ModuleValidator
 from math import *
 from typing import Callable
 import numpy as np
-import encryption_lib
+
 
 
 class Server:
@@ -182,7 +183,7 @@ class Server:
     def train_fed_ecc_encryption(self, short_ver=False):
         mtx_size = ceil(sqrt(self.model_infor['total_params']))
 
-        encrypt = encryption_lib.EccEncryption(self.nb_clients, mtx_size)
+        encrypt = EccEncryption(self.nb_clients, mtx_size)
         encrypt.client_setup_private_params()
 
         if not short_ver:
@@ -221,7 +222,7 @@ class Server:
     def train_fed_elgamal_encryption(self, short_ver=False):
         mtx_size = ceil(sqrt(self.model_infor['total_params']))
 
-        encrypt = encryption_lib.ElGamalEncryption(self.nb_clients, mtx_size)
+        encrypt = ElGamalEncryption(self.nb_clients, mtx_size)
         encrypt.generate_client_noise_mtx()
         encrypt.generate_client_key()
 

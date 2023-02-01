@@ -4,6 +4,7 @@
         "overwrite_experiment": true,
         "device": "cuda",
         "compress_digit": 15,
+        "encrypt_mode": "elgamal",
         "dp_mode": false
     },
     "data_config": {

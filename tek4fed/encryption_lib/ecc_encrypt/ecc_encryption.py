@@ -1,4 +1,4 @@
-from encryption_lib.ecc_encrypt.ecc_utils import *
+from tek4fed.encryption_lib.ecc_encrypt.ecc_utils import *
 from tek4fed.model_lib import get_model_weights, weight_to_mtx, split_weight, get_model_infor
 from fastecdsa import curve
 
@@ -12,6 +12,8 @@ class EccEncryption:
         self.mtx_size = mtx_size
         self.nb_client = nb_client
 
+        print('EL-GAMAL encryption ...')
+        print('Curve: ', self.curve)
         # initialize private parameters for clients
         self.client_private_parameter = {
             'm_i': {}, 'n_i': {},

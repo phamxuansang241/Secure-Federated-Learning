@@ -74,7 +74,13 @@ server.setup()
     TRAINING MODEL
 """
 print('[INFO] TRAINING MODEL ...')
-server.train_fed_elgamal_encryption(short_ver=True)
+
+if global_config['encrypt_mode'] == 'None':
+    server.train_fed_model()
+elif global_config['encrypt_mode'] == 'elgamal':
+    server.train_fed_elgamal_encryption(short_ver=True)
+elif global_config['encrypt_mode'] == 'ecc':
+    server.train_fed_ecc_encryption(short_ver=True)
 
 with open(str(experiment.train_hist_path), 'w') as f:
     test_dict = copy.deepcopy(server.global_test_metrics)
