@@ -1,4 +1,5 @@
-from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models, set_model_weights
+from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models,\
+     set_model_weights
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed import fed_learn
 from tek4fed.compress_params_lib import CompressParams
@@ -10,7 +11,6 @@ from opacus.validators import ModuleValidator
 from math import *
 from typing import Callable
 import numpy as np
-
 
 
 class Server:
@@ -252,7 +252,7 @@ class Server:
 
             epoch_mean_loss = np.mean(self.epoch_losses)
             self.global_train_losses.append(epoch_mean_loss)
-            print('\t Loss (client mean): {0}'.format(self.global_train_losses[-1]))
+            print('\t Loss (client mean): {}'.format(self.global_train_losses[-1]))
 
             # testing current model_lib
             self.test_global_model()
