@@ -1,4 +1,5 @@
 import torch
+from tek4fed.decorator import timer
 from tek4fed import dp_lib, model_lib
 from typing import Callable
 from torch.utils.data import DataLoader
@@ -83,6 +84,7 @@ class PriClient:
             max_grad_norm=self.clipping_norm
         )
 
+    @timer
     def edge_train(self):
         """
         Update local model using local dataset
@@ -91,7 +93,7 @@ class PriClient:
             raise ValueError('Model is not created for client: {0}'.format(self.index))
         self.model.to(self.device)
         self.model.train()
-        # print(self.model)
+
         losses = []
 
         if self.current_iter + self.local_epochs*len(self.data_loader) <= self.max_allow_iter:
@@ -101,9 +103,6 @@ class PriClient:
         self.current_iter = self.current_iter + self.local_epochs*len(self.data_loader)
 
         _batch_idx = 0
-
-        # measure how long training is going to take
-        start_time = time.time()
 
         while True:
             for x_batch, y_batch in self.data_loader:
@@ -136,12 +135,8 @@ class PriClient:
             delta=self.delta
         )
 
-        # finish measuring how long training took
-        end_time = time.time()
         print("\t\tLoss value: {:.6f}".format(sum(losses) / len(losses)))
         print("\t\tEpsilon is used: {:.6f}".format(self.used_eps))
-        print("\t\t Total time taken to train: {:.2f}s".format(end_time - start_time))
-
         gc.collect()
 
         return losses
@@ -158,5 +153,3 @@ class PriClient:
     def receive_and_init_model(self, model_fn: Callable, model_weights):
         self.init_model(model_fn, model_weights)
 
-    def reset_model(self):
-        model_lib.get_rid_of_models(self.model)
