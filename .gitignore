@@ -5,3 +5,4 @@ __pycache__/
 *.pth
 *.json
 *.idea/
+*.cfg
