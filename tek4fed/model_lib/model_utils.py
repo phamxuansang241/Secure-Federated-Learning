@@ -2,9 +2,11 @@ from tek4fed import model_lib
 import torch
 import gc
 import numpy as np
+import copy
+from typing import List
 
 
-def set_model_weights(model, weights_list, to_device=True, used_device='cpu'):
+def set_model_weights(model, weights_list: List[np.ndarray], to_device=True, used_device='cpu'):
     for weight, param in zip(weights_list, model.parameters()):
         if to_device:
             data = torch.from_numpy(weight).to(used_device)
@@ -31,7 +33,7 @@ def get_model_infor(model):
     return weights_shape, total_params
 
 
-def flatten_weight(weights):
+def flatten_weight(weights: List[np.ndarray]):
     weights_flatten_vector = np.array([], dtype=np.float32)
 
     for i in range(len(weights)):
@@ -42,7 +44,7 @@ def flatten_weight(weights):
     return weights_flatten_vector
 
 
-def weight_to_mtx(weights, mtx_size):
+def weight_to_mtx(weights: List[np.ndarray], mtx_size: int):
     weights_flatten_vector = flatten_weight(weights)
     weights_flatten_vector.resize(mtx_size*mtx_size, refcheck=False)
     weights_mtx = weights_flatten_vector.reshape(mtx_size, mtx_size)
@@ -50,7 +52,7 @@ def weight_to_mtx(weights, mtx_size):
     return weights_mtx
 
 
-def split_weight(weights_flatten_vector, weights_shape):
+def split_weight(weights_flatten_vector: List[np.ndarray], weights_shape: List):
     weights_split = []
     start = 0
 
@@ -80,3 +82,20 @@ def get_model_function(dataset_name):
         return model
 
     return model_function
+
+
+def get_dssgd_update(client_model, server_weights, weights_shape, theta_upload=0.1) -> List[np.ndarray]:
+    client_weights = get_model_weights(client_model)
+
+    # flatten client weights and server weights
+    client_weights_row = flatten_weight(client_weights)
+    server_weights_row = flatten_weight(server_weights)
+
+    delta_weights = server_weights_row - client_weights_row
+    indexes = np.argsort(delta_weights)[::-1][:int(len(delta_weights)*theta_upload)]
+    
+    server_weights_row[indexes] = client_weights_row[indexes]
+    upload_weights = copy.deepcopy(server_weights_row)
+
+    upload_weights = split_weight(upload_weights, weights_shape)
+    return upload_weights

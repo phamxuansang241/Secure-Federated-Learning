@@ -1,13 +1,12 @@
 from tek4fed.fed_learn import get_args, Server, FedAvg
-from tek4fed.model_lib import get_model_function, set_model_weights
+from tek4fed.model_lib import get_model_function
 from tek4fed.data_lib import DataSetup
-from tek4fed.compress_params_lib import CompressParams
 from tek4fed.experiment_lib import Experiment, get_experiment_result
 import copy
-import numpy as np
 import json
 
 
+_supported_training_mode = ['fedavg', 'fed_ecc', 'fed_elgamal', 'dssgd']
 print("*** FIX VER 11")
 """
     ARGUMENT PARSER AND UNPACK JSON OBJECT
@@ -75,12 +74,15 @@ server.setup()
 """
 print('[INFO] TRAINING MODEL ...')
 
-if global_config['encrypt_mode'] == 'None':
-    server.train_fed_model()
-elif global_config['encrypt_mode'] == 'elgamal':
+assert global_config['training_mode'] in _supported_training_mode, "Unsupported training mode, this shouldn't happen"
+if global_config['training_mode'] == 'fedavg':
+    server.train_dssgd()
+elif global_config['training_mode'] == 'fed_elgamal':
     server.train_fed_elgamal_encryption(short_ver=True)
-elif global_config['encrypt_mode'] == 'ecc':
+elif global_config['training_mode'] == 'fed_ecc':
     server.train_fed_ecc_encryption(short_ver=True)
+elif global_config['training_mode'] == 'dssgd':
+    server.train_dssgd()
 
 with open(str(experiment.train_hist_path), 'w') as f:
     test_dict = copy.deepcopy(server.global_test_metrics)

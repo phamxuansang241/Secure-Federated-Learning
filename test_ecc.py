@@ -1,4 +1,4 @@
-import encryption_lib
+from tek4fed import encryption_lib
 import numpy as np
 import time
 
