@@ -4,12 +4,12 @@
         "overwrite_experiment": true,
         "device": "cuda",
         "compress_digit": 15,
-        "encrypt_mode": "elgamal",
+        "encrypt_mode": "None",
         "dp_mode": false
     },
     "data_config": {
         "dataset_name": "csic2010",
-        "data_sampling_technique": "iid"
+        "data_sampling_technique": "noniid_labeldir"
     },
     "fed_config": {
         "global_epochs": 10,

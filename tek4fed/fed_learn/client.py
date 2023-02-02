@@ -1,10 +1,10 @@
+from tek4fed.decorator import timer
 from tek4fed import model_lib
 from typing import Callable
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch.optim import Adam
 from torch import nn
-import time
 import gc
 
 
@@ -47,14 +47,13 @@ class Client:
         model_lib.set_model_weights(temp_model, model_weights, used_device=self.device)
         self.model = temp_model
 
+    @timer
     def edge_train(self):
         if self.model is None:
             raise ValueError('Model is not created for client: {0}'.format(self.index))
         self.model.to(self.device)
         # set the model_lib in training mode
         self.model.train()
-        # measure how long training is going to take
-        start_time = time.time()
 
         losses = []
 
@@ -78,14 +77,9 @@ class Client:
                 losses.append(loss.item())
                 torch.cuda.empty_cache()
 
-        # finish measuring how long training took
-        end_time = time.time()
         print("\t\t Loss value: {:.6f}".format(sum(losses) / len(losses)))
-        print("\t\t Total time taken to train: {:.2f}s".format(end_time - start_time))
-        
+
         gc.collect()
 
         return losses
 
-    def reset_model(self):
-        model_lib.get_rid_of_models(self.model)
