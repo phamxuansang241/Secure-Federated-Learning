@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models,\
      set_model_weights
+=======
+from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models, set_model_weights, \
+    get_dssgd_update
+>>>>>>> 92ebba6325629a1057ff349ef86b5ca6fb578149
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed import fed_learn
 from tek4fed.compress_params_lib import CompressParams
@@ -155,7 +160,7 @@ class Server:
             print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
 
             for client in selected_clients:
-                print('\t Client {} is starting the training'.format(client.index))
+                print('\t Client {} starts training'.format(client.index))
 
                 if self.training_config['dp_mode']:
                     if client.current_iter > client.max_allow_iter:
@@ -201,7 +206,7 @@ class Server:
             # perform phase on of the encryption
             encrypt.perform_phase_one(short_ver)
             for client in selected_clients:
-                print('\t Client {} is starting the training'.format(client.index))
+                print('\t Client {} starts training'.format(client.index))
                 set_model_weights(client.model, self.global_model_weights, client.device)
                 client_losses = client.edge_train()
                 self.epoch_losses.append(client_losses[-1])
@@ -239,7 +244,7 @@ class Server:
             encrypt.calculate_server_public_key(selected_clients)
 
             for client in selected_clients:
-                print('\t Client {} is starting the training'.format(client.index))
+                print('\t Client {} starts training'.format(client.index))
                 set_model_weights(client.model, self.global_model_weights, client.device)
                 client_losses = client.edge_train()
                 self.epoch_losses.append(client_losses[-1])
@@ -310,5 +315,26 @@ class Server:
     def receive_data(self, x, y):
         self.x_test = x
         self.y_test = y
+
+    def train_dssgd(self):
+        for epoch in range(self.training_config['global_epochs']):
+            print('[TRAINING] Global Epoch {0} starts ...'.format(epoch))
+
+            selected_clients = self.select_clients()
+            clients_ids = [c.index for c in selected_clients]
+            print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
+
+            for client in selected_clients:
+                print('\t Client {} starts training'.format(client.index))
+                set_model_weights(client.model, self.global_model_weights, client.device)
+                client.edge_train()
+                self.global_model_weights = get_dssgd_update(client.model, self.global_model_weights, self.model_infor['weights_shape'], theta_upload=0.9)
+
+            self.test_global_model()
+                
+
+
+
+
 
 
