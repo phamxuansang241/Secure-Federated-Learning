@@ -1,10 +1,7 @@
-<<<<<<< HEAD
 from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models,\
      set_model_weights
-=======
 from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models, set_model_weights, \
     get_dssgd_update
->>>>>>> 92ebba6325629a1057ff349ef86b5ca6fb578149
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed import fed_learn
 from tek4fed.compress_params_lib import CompressParams

@@ -6,7 +6,6 @@ from torch.nn import ReLU
 from torch.nn import MaxPool1d
 from torch.nn import Dropout
 from torch.nn import Softmax
-from torch import flatten
 
 
 def compute_output_size(input_length, window, stride):

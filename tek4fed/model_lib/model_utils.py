@@ -77,6 +77,8 @@ def get_model_function(dataset_name):
     def model_function():
         if dataset_name == 'mnist':
             model = model_lib.Mnist_Net(num_class=10)
+        elif dataset_name == 'smsspam':
+            model = model_lib.LSTMNet(vocab_size=6972, embed_dim=128, hidden_dim=32, nb_classes=2, n_layers=2)
         else:
             model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
         return model

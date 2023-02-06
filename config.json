@@ -8,7 +8,7 @@
         "dp_mode": false
     },
     "data_config": {
-        "dataset_name": "mnist",
+        "dataset_name": "smsspam",
         "data_sampling_technique": "iid"
     },
     "fed_config": {
