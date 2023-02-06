@@ -1,6 +1,6 @@
 from tek4fed.encryption_lib.ecc_encrypt.ecc_utils import *
 from tek4fed.model_lib import get_model_weights, weight_to_mtx, split_weight, get_model_infor
-from fastecdsa import curve
+from tek4fed.encryption_lib.tinyec import registry
 
 MIN_VAL = 1
 MAX_VAL = 124
@@ -8,7 +8,7 @@ MAX_VAL = 124
 
 class EccEncryption:
     def __init__(self, nb_client, mtx_size) -> None:
-        self.curve = curve.brainpoolP512r1
+        self.curve = registry.get_curve('secp192r1')
         self.mtx_size = mtx_size
         self.nb_client = nb_client
 
@@ -192,18 +192,18 @@ class EccEncryption:
         for i in range(self.mtx_size):
             for j in range(self.mtx_size):
                 point_r = Point(
-                    self.server_decoded_message['RR'][i, j, 0], self.server_decoded_message['RR'][i, j, 1],
-                    self.curve
+                    self.curve,
+                    self.server_decoded_message['RR'][i, j, 0], self.server_decoded_message['RR'][i, j, 1]
                 )
                 point_s = Point(
-                    self.server_decoded_message['SS'][i, j, 0], self.server_decoded_message['SS'][i, j, 1],
-                    self.curve
+                    self.curve,
+                    self.server_decoded_message['SS'][i, j, 0], self.server_decoded_message['SS'][i, j, 1]
                 )
 
                 for di in range(1, MAX_VAL * self.nb_client):
-                    if di * self.curve.G == point_r:
+                    if di * self.curve.g == point_r:
                         r_pred.append(di)
-                    if di * self.curve.G == point_s:
+                    if di * self.curve.g == point_s:
                         s_pred.append(di)
 
         r_pred = np.array(r_pred).reshape(self.mtx_size, self.mtx_size)

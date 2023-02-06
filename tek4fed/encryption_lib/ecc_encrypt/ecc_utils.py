@@ -1,5 +1,5 @@
 import numpy as np
-from fastecdsa.point import Point
+from tek4fed.encryption_lib.tinyec import Point
 
 
 def generate_invertible_matrix(mtx_size):
@@ -43,7 +43,7 @@ def ecc_multiply_matrix_with_point(mtx, mtx_size, curve):
     # transform matrix to vector
     vtc = mtx.flatten()
     # multiply vector with generator point of the curve
-    temp_point_vtc = vtc * curve.G
+    temp_point_vtc = vtc * curve.g
     # get list form of temp point
     res_point_vtc = []
     for i in range(mtx_size**2):
@@ -64,8 +64,8 @@ def ecc_add_pointmatrix_with_pointmatrix(point_mtx_a, point_mtx_b, mtx_size, cur
 
     for i in range(mtx_size):
         for j in range(mtx_size):
-            point = Point(point_mtx_a[i, j, 0], point_mtx_a[i, j, 1], curve) \
-                + Point(point_mtx_b[i, j, 0], point_mtx_b[i, j, 1], curve)
+            point = Point(curve, point_mtx_a[i, j, 0], point_mtx_a[i, j, 1]) \
+                + Point(curve, point_mtx_b[i, j, 0], point_mtx_b[i, j, 1])
             if point.x == 0:
                 print('A: ', point_mtx_a[i, j, 0], point_mtx_a[i, j, 1])
                 print('B: ', point_mtx_b[i, j, 0], point_mtx_b[i, j, 1])
@@ -85,8 +85,8 @@ def ecc_subtract_pointmatrix_with_pointmatrix(point_mtx_a, point_mtx_b, mtx_size
 
     for i in range(mtx_size):
         for j in range(mtx_size):
-            point = Point(point_mtx_a[i, j, 0], point_mtx_a[i, j, 1], curve) \
-                - Point(point_mtx_b[i, j, 0], point_mtx_b[i, j, 1], curve)
+            point = Point(curve, point_mtx_a[i, j, 0], point_mtx_a[i, j, 1]) \
+                - Point(curve, point_mtx_b[i, j, 0], point_mtx_b[i, j, 1])
             res_point_mtx.append([point.x, point.y])
 
     res_point_mtx = np.array(res_point_mtx).reshape(mtx_size, mtx_size, -1)
@@ -100,7 +100,7 @@ def ecc_multiply_matrix_with_pointmatrix(mtx, point_mtx, mtx_size, curve):
     res_point_mtx = []
     for i in range(mtx_size):
         for j in range(mtx_size):
-            point = mtx[i][j] * Point(point_mtx[i, j, 0], point_mtx[i, j, 1], curve)
+            point = mtx[i][j] * Point(curve, point_mtx[i, j, 0], point_mtx[i, j, 1])
             res_point_mtx.append([point.x, point.y])
     
     res_point_mtx = np.array(res_point_mtx).reshape(mtx_size, mtx_size, -1)

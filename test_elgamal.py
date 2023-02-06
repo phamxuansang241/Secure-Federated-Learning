@@ -1,7 +1,7 @@
 from tek4fed.fed_learn import get_args, Server, FedAvg
 from tek4fed.data_lib import DataSetup
 import json
-import encryption_lib
+import tek4fed.encryption_lib
 from tek4fed.model_lib import get_model_function, set_model_weights, get_model_weights, weight_to_mtx
 import numpy as np
 

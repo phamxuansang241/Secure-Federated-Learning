@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from encryption_lib.tinyec import ec
+from tek4fed.encryption_lib.tinyec import ec
 
 
 EC_CURVE_REGISTRY = {"small_ec": {"p": 147088164709569533,
