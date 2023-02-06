@@ -5,7 +5,7 @@ from tek4fed.experiment_lib import Experiment, get_experiment_result
 import copy
 import json
 
-
+# bà mày
 _supported_training_mode = ['fedavg', 'fed_ecc', 'fed_elgamal', 'dssgd']
 print("*** FIX VER 11")
 """
