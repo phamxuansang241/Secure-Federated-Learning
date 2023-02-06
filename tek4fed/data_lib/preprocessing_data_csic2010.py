@@ -1,6 +1,6 @@
 import urllib.parse
-from tek4fed import data_lib
 import pandas as pd
+from tek4fed import data_lib
 from sklearn.model_selection import train_test_split
 
 
@@ -62,7 +62,7 @@ def preprocessing_csic2010_dataset(data_file_lst, label_lst, max_len):
     x_data = df_full['requests'].values
     y_data = df_full['labels'].values
 
-    vocab, reverse_vocab, vocab_size, alphabet = data_lib.create_vocab_set()
+    vocab, _, _, _ = data_lib.create_vocab_set()
     x_data = data_lib.encode_data(x_data, max_len, vocab)
     return x_data, y_data
 
