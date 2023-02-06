@@ -27,7 +27,7 @@ def preprocessing_httpparams_dataset(df, max_len):
     print("\tNumber of anomalous requests: ", len(df[df['label'] == 1]))
     print("\tNumber of total requests: ", df.shape[0])
 
-    vocab, reverse_vocab, vocab_size, alphabet = data_lib.create_vocab_set()
+    vocab, _, _, _ = data_lib.create_vocab_set()
     x_data = data_lib.encode_data(x_data, max_len, vocab)
 
     return x_data, y_data
