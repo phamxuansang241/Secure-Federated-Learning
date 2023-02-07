@@ -6,7 +6,9 @@ import numpy as np
 class CompressParams:
     def __init__(self, compress_digit) -> None:
         self.compress_digit = compress_digit
+        
         self.compress_number = math.pow(10, self.compress_digit)
+        print('\t Compress number:', self.compress_number)
 
         self.client_compress_config = {
             'ceil_max_weight': {}, 

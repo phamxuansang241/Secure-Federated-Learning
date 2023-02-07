@@ -120,6 +120,8 @@ class Server:
         client_indices = np.arange(self.nb_clients)
         np.random.shuffle(client_indices)
         selected_client_indices = client_indices[:nb_clients_to_use]
+        print('Selected clients for epoch: {0}'.format('| '.join(map(str, selected_client_indices))))
+
         return np.asarray(self.clients)[selected_client_indices]
 
     def receive_results(self, client):
@@ -144,7 +146,7 @@ class Server:
     def update_training_config(self, config: dict):
         self.training_config.update(config)
 
-    def train_fed_model(self):
+    def train_fed_compress(self):
         compress_params = CompressParams(self.training_config['compress_digit'])
         print('\t Compress number:', compress_params.compress_number)
 
@@ -153,9 +155,7 @@ class Server:
 
             self.init_for_new_epoch()
             selected_clients = self.select_clients()
-            clients_ids = [c.index for c in selected_clients]
-            print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
-
+            
             for client in selected_clients:
                 print('\t Client {} starts training'.format(client.index))
 
@@ -197,8 +197,6 @@ class Server:
 
             self.init_for_new_epoch()
             selected_clients = self.select_clients()
-            clients_ids = [c.index for c in selected_clients]
-            print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
 
             # perform phase on of the encryption
             encrypt.perform_phase_one(short_ver)
@@ -207,6 +205,7 @@ class Server:
                 set_model_weights(client.model, self.global_model_weights, client.device)
                 client_losses = client.edge_train()
                 self.epoch_losses.append(client_losses[-1])
+
                 print('\t\t [ECC] Encoding phase two')
                 encrypt.encoded_message_phase_two(client)
 
@@ -214,8 +213,7 @@ class Server:
             self.sum_client_weight = encrypt.decoded_message_phase_two(selected_clients)
             self.summarize_weights(encrypt_mode=True)
 
-            epoch_mean_loss = np.mean(self.epoch_losses)
-            self.global_train_losses.append(epoch_mean_loss)
+            self.global_train_losses.append(np.mean(self.epoch_losses))
             print('\t Loss (client mean): {0}'.format(self.global_train_losses[-1]))
 
             # testing current model_lib
@@ -232,11 +230,8 @@ class Server:
         for epoch in range(self.training_config['global_epochs']):
             print('[TRAINING] Global Epoch {0} starts ...'.format(epoch))
 
-
             self.init_for_new_epoch()
             selected_clients = self.select_clients()
-            clients_ids = [c.index for c in selected_clients]
-            print('Selected clients for epoch: {0}'.format('| '.join(map(str, clients_ids))))
 
             encrypt.calculate_server_public_key(selected_clients)
 
