@@ -6,7 +6,7 @@ import copy
 import json
 
 # bà mày
-_supported_training_mode = ['fedavg', 'fed_ecc', 'fed_elgamal', 'dssgd']
+_supported_training_mode = ['fedavg', 'fed_compress', 'fed_ecc', 'fed_elgamal', 'dssgd']
 print("*** FIX VER 11")
 """
     ARGUMENT PARSER AND UNPACK JSON OBJECT
@@ -29,9 +29,11 @@ dp_config = config['dp_config']
 print('Overwrite experiment mode: ', global_config['overwrite_experiment'])
 
 experiment_config = {
+    'training_mode': global_config['training_mode'],
     'name': global_config['name'],
     'dataset_name': data_config['dataset_name'],
-    'overwrite_experiment': global_config['overwrite_experiment']
+    'overwrite_experiment': global_config['overwrite_experiment'], 
+    'global_epochs': fed_config['global_epochs']
 }
 
 experiment = Experiment(experiment_config)
@@ -75,8 +77,11 @@ server.setup()
 print('[INFO] TRAINING MODEL ...')
 
 assert global_config['training_mode'] in _supported_training_mode, "Unsupported training mode, this shouldn't happen"
+
 if global_config['training_mode'] == 'fedavg':
-    server.train_dssgd()
+    server.train_fed()
+elif global_config['training_mode'] == 'fed_compress':
+    server.train_fed_compress()
 elif global_config['training_mode'] == 'fed_elgamal':
     server.train_fed_elgamal_encryption(short_ver=True)
 elif global_config['training_mode'] == 'fed_ecc':

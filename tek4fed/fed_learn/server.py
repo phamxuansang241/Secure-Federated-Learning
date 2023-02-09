@@ -1,3 +1,4 @@
+from tek4fed.decorator import print_decorator
 from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models,\
      set_model_weights
 from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models, set_model_weights, \
@@ -120,7 +121,7 @@ class Server:
         client_indices = np.arange(self.nb_clients)
         np.random.shuffle(client_indices)
         selected_client_indices = client_indices[:nb_clients_to_use]
-        print('Selected clients for epoch: {0}'.format('| '.join(map(str, selected_client_indices))))
+        print('\t Selected clients for epoch: {0}'.format('| '.join(map(str, selected_client_indices))))
 
         return np.asarray(self.clients)[selected_client_indices]
 
@@ -146,13 +147,42 @@ class Server:
     def update_training_config(self, config: dict):
         self.training_config.update(config)
 
+
+    def train_fed(self):
+        def train():
+            self.init_for_new_epoch()
+            selected_clients = self.select_clients()
+            
+            for client in selected_clients:
+                print('\t Client {} starts training'.format(client.index))
+
+                if self.training_config['dp_mode']:
+                    if client.current_iter > client.max_allow_iter:
+                        break
+
+                set_model_weights(client.model, self.global_model_weights, client.device)
+                client_losses = client.edge_train()
+
+                self.epoch_losses.append(client_losses[-1])
+                
+                self.client_model_weights.append(get_model_weights(client.model))
+            self.summarize_weights()
+
+            epoch_mean_loss = np.mean(self.epoch_losses)
+            self.global_train_losses.append(epoch_mean_loss)
+
+            return self.global_train_losses[-1]
+        
+        for epoch in range(self.training_config['global_epochs']):
+            print_decorator(epoch)(train)()
+            # testing current model_lib
+            self.test_global_model()
+
+
     def train_fed_compress(self):
         compress_params = CompressParams(self.training_config['compress_digit'])
-        print('\t Compress number:', compress_params.compress_number)
 
-        for epoch in range(self.training_config['global_epochs']):
-            print('[TRAINING] Global Epoch {0} starts ...'.format(epoch))
-
+        def train():
             self.init_for_new_epoch()
             selected_clients = self.select_clients()
             
@@ -177,8 +207,11 @@ class Server:
 
             epoch_mean_loss = np.mean(self.epoch_losses)
             self.global_train_losses.append(epoch_mean_loss)
-            print('\tLoss (client mean): {0}'.format(self.global_train_losses[-1]))
 
+            return self.global_train_losses[-1]
+
+        for epoch in range(self.training_config['global_epochs']):
+            print_decorator(epoch)(train)()
             # testing current model_lib
             self.test_global_model()
 

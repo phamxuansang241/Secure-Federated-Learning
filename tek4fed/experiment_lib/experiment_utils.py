@@ -5,6 +5,8 @@ import torch
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 from datetime import date
+import matplotlib.pyplot as plt
+
 
 
 def get_experiment_result(server, experiment, dataset_name):
@@ -15,32 +17,26 @@ def get_experiment_result(server, experiment, dataset_name):
     }
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    temp_model = torch.load(experiment.global_weight_path).to(device)
+    model = torch.load(experiment.global_weight_path).to(device)
     print(experiment.global_weight_path)
-    predictions = []
-    with torch.no_grad():
-        temp_model.eval()
 
-        y_test = []
+    model.eval()
+    predictions = []
+    y_test = []
+    with torch.no_grad():
         for (x_batch, y_batch) in server.data_loader:
             x_batch = x_batch.to(device)
-
-            pred = temp_model(x_batch)
-            pred_np = pred.detach().cpu().numpy()                
-            
-            predictions.extend(pred_np)
+            pred = model(x_batch)
+            predictions.extend(pred.detach().cpu().numpy())
             y_test.extend(y_batch)
 
     predictions = np.array(predictions)
-    # y_test = server.y_test
-
+    score = None
     if num_class[dataset_name] > 2:
         score = classification_report(y_test, predictions.argmax(axis=1), output_dict=True)
         report_dict = {'report': score}
     else:
-        score = confusion_matrix(y_test, predictions.argmax(axis=1))
-        score = score * 1.0
-
+        score = confusion_matrix(y_test, predictions.argmax(axis=1)) * 1.0
         tn, fp, fn, tp = score.ravel()
         acc = (tn+tp) / (tn+fp+fn+tp)
         recall = tp / (tp+fn) 
@@ -53,9 +49,8 @@ def get_experiment_result(server, experiment, dataset_name):
                        'Accuracy': acc, 'Recall (TPR)': recall,
                        'Precision': precision, 'FPR (Fall-out)': fpr,
                        'DRN': drn, 'F_1 score': f_1}
-    # print(report_dict)
+    
     print(json.dumps(report_dict, indent=4))
-
     with open(str(experiment.train_hist_path), 'r+') as f:
         data = json.load(f)
         data.update(report_dict)
@@ -82,7 +77,7 @@ class Experiment:
 
     def setup_experiment_folder_path(self):
         experiment_name = date.today().strftime("%b-%d-%Y") + '-' + self.experiment_config['name']
-        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' / self.experiment_config['dataset_name'] / experiment_name
+        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' /  self.experiment_config['training_mode'] /self.experiment_config['dataset_name'] / str(self.experiment_config['global_epochs']) / self.experiment_config['name']
         print(experiment_folder_path)
         return experiment_folder_path
 

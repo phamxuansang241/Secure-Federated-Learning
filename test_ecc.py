@@ -31,3 +31,5 @@ print('Matrix M: \n', encrypt.server_decoded_message['M'])
 print('Matrix N: \n', encrypt.server_decoded_message['N'])
 
 np.testing.assert_array_equal(sum_mtx_M, encrypt.server_decoded_message['M'], err_msg="Two matrice not equal")
+
+

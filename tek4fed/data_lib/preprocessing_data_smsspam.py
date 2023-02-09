@@ -9,6 +9,7 @@ from textblob import Word
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.utils import resample
 
 
 def cleaning_smsspam_dataset(df_data):
@@ -61,6 +62,13 @@ def preprocessing_smsspam_dataset(datafile):
     df = cleaning_smsspam_dataset(df)
 
     df['target'].replace({'ham': 0, 'spam': 1}, inplace=True)
+
+    df_majority = df[df.target==0]
+    df_minority = df[df.target==1]
+    df_minority_oversampled = resample(df_minority, replace=True, 
+                                     n_samples=len(df_majority), 
+                                     random_state=123)
+    df = pd.concat([df_majority, df_minority_oversampled])
 
     print("+++ smsspam dataset: +++")
     print("\tNumber of ham messages: ", len(df[df['target'] == 0]))

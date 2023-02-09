@@ -19,4 +19,19 @@ def timer(func):
     return wrapper_time
 
 
+def print_decorator(epoch):
+    def Inner(func):
+
+        def wrapper(*args, **kwargs):
+            print('[TRAINING] Global epoch {} starts ...'.format(epoch))
+            result = func(*args, **kwargs)
+            print('\t Loss (client mean): {}'.format(result))
+
+            return result
+        return wrapper
+
+    return Inner
+
+
+
 
