@@ -3,14 +3,14 @@ from tek4fed.model_lib import get_model_function
 from tek4fed.data_lib import DataSetup
 from tek4fed.experiment_lib import Experiment, get_experiment_result
 import copy
+from pathlib import Path
 import json
+import sys
 
-# bà mày
+
 _supported_training_mode = ['fedavg', 'fed_compress', 'fed_ecc', 'fed_elgamal', 'dssgd']
-print("*** FIX VER 11")
-"""
-    ARGUMENT PARSER AND UNPACK JSON OBJECT
-"""
+
+# Argument parser and unpack JSON object
 args = get_args()
 
 with open(args.config_path, 'r') as openfile:
@@ -22,28 +22,21 @@ fed_config = config['fed_config']
 dp_config = config['dp_config']
 
 
-"""
-    SETTING EXPERIMENT
-"""
-
-print('Overwrite experiment mode: ', global_config['overwrite_experiment'])
+# Setting experiment
 
 experiment_config = {
-    'training_mode': global_config['training_mode'],
-    'name': global_config['name'],
-    'dataset_name': data_config['dataset_name'],
+    'training_mode': global_config['training_mode'], 'name': global_config['name'],
+    'dataset_name': data_config['dataset_name'], 'data_sampling_technique': data_config['data_sampling_technique'],
     'overwrite_experiment': global_config['overwrite_experiment'], 
-    'global_epochs': fed_config['global_epochs']
+    'nb_clients': fed_config['nb_clients'], 'global_epochs': fed_config['global_epochs']
 }
 
 experiment = Experiment(experiment_config)
 experiment.serialize_config(config)
 
 
-"""
-    CREATING SERVER AND CLIENT
-"""
-
+sys.stdout = open(experiment.log_path, "w")
+# Creating server and client
 training_config = {
     'compress_digit': global_config['compress_digit'],
     'dataset_name': data_config['dataset_name'],
@@ -55,25 +48,21 @@ training_config = {
 
 
 weight_summarizer = FedAvg()
-server = Server(get_model_function(data_config['dataset_name']), weight_summarizer, training_config, fed_config, dp_config)
+server = Server(
+    get_model_function(data_config['dataset_name']), weight_summarizer, training_config, fed_config, dp_config
+    )
 
 server.update_training_config(training_config)
 server.create_clients()
 
-"""
-    PREPROCESSING DATA AND DISTRIBUTING DATA
-"""
+# Preprocessing data and distributing data
 DataSetup(data_config).setup(server)
 
 
-"""
-    SET UP CLIENTS
-"""
+# Set up clients
 server.setup()
 
-"""
-    TRAINING MODEL
-"""
+# Training model
 print('[INFO] TRAINING MODEL ...')
 
 assert global_config['training_mode'] in _supported_training_mode, "Unsupported training mode, this shouldn't happen"
@@ -96,8 +85,10 @@ with open(str(experiment.train_hist_path), 'w') as f:
 server.save_model_weights(experiment.global_weight_path)
 
 
-'''
-    EVALUATING MODEL
-'''
+# Evaluating model
 print('[INFO] GET EXPERIMENT RESULTS ...')
 get_experiment_result(server, experiment, data_config['dataset_name'])
+
+
+sys.stdout.close()
+sys.stdout = sys.__stdout__
