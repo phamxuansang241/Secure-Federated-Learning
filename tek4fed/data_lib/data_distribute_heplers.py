@@ -27,7 +27,7 @@ def non_iid_data_indices(nb_clients: int, labels: np.ndarray, nb_shards: int = 2
     return indices_for_users
 
 
-def non_iid_label_dir_data_indices(nb_clients: int, labels: np.ndarray, beta: float=0.8):
+def non_iid_label_dir_data_indices(nb_clients: int, labels: np.ndarray, beta: float=0.7):
     nb_class = len(np.unique(labels))
     data_len = len(labels)
     min_size = 0

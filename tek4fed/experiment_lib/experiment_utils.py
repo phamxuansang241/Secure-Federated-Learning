@@ -71,13 +71,16 @@ class Experiment:
         self.experiment_folder_path.mkdir(parents=True, exist_ok=False)
 
         self.config_json_path = self.experiment_folder_path / 'config.json'
-
+        self.log_path = self.experiment_folder_path / 'log.txt'
         self.train_hist_path = self.experiment_folder_path / 'fed_learn_global_test_results.json'
         self.global_weight_path = self.experiment_folder_path / 'global_model.pth'
 
     def setup_experiment_folder_path(self):
         experiment_name = date.today().strftime("%b-%d-%Y") + '-' + self.experiment_config['name']
-        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' /  self.experiment_config['training_mode'] /self.experiment_config['dataset_name'] / str(self.experiment_config['global_epochs']) / self.experiment_config['name']
+        global_epochs_str = str(self.experiment_config['global_epochs']) + '_global_epochs'
+        nb_clients_str = str(self.experiment_config['nb_clients']) + "_clients"
+        
+        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' /  self.experiment_config['training_mode'] /self.experiment_config['dataset_name'] / nb_clients_str / self.experiment_config['data_sampling_technique'] / global_epochs_str / experiment_name
         print(experiment_folder_path)
         return experiment_folder_path
 
