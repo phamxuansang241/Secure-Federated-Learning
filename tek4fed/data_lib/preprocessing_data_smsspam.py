@@ -3,7 +3,7 @@ from torchtext.vocab import build_vocab_from_iterator
 import string
 import nltk
 
-# nltk.download('stopwords')
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 from textblob import Word
 import numpy as np
