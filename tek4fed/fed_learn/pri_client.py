@@ -1,7 +1,7 @@
 import torch
 from tek4fed.decorator import timer
 from tek4fed import dp_lib, model_lib
-from tek4fed.opacus import PrivacyEngine
+from opacus import PrivacyEngine
 from typing import Callable
 from torch.utils.data import DataLoader
 from torch.utils.data import TensorDataset

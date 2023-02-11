@@ -7,7 +7,7 @@ from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed import fed_learn
 from tek4fed.compress_params_lib import CompressParams
 from tek4fed.encryption_lib import EccEncryption, ElGamalEncryption
-from tek4fed.opacus.validators import ModuleValidator
+from opacus.validators import ModuleValidator
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch import nn
