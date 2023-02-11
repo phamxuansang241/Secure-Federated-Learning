@@ -80,7 +80,7 @@ class Experiment:
         dataset_name = self.experiment_config['dataset_name']
         experiment_name = date.today().strftime("%b_%d_%Y") + '_' + self.experiment_config['name']
         if training_mode == 'fed_compress':
-            experiment_name = experiment_name + '_dg_' + self.experiment_config['compress_digit']
+            experiment_name = experiment_name + '_dg_' + str(self.experiment_config['compress_digit'])
 
         global_epochs_str = str(self.experiment_config['global_epochs']) + '_global_epochs'
         nb_clients_str = str(self.experiment_config['nb_clients']) + "_clients"
