@@ -76,11 +76,18 @@ class Experiment:
         self.global_weight_path = self.experiment_folder_path / 'global_model.pth'
 
     def setup_experiment_folder_path(self):
-        experiment_name = date.today().strftime("%b-%d-%Y") + '-' + self.experiment_config['name']
+        training_mode = self.experiment_config['training_mode']
+        dataset_name = self.experiment_config['dataset_name']
+        experiment_name = date.today().strftime("%b_%d_%Y") + '_' + self.experiment_config['name']
+        if training_mode == 'fed_compress':
+            experiment_name = experiment_name + '_dg_' + self.experiment_config['compress_digit']
+
         global_epochs_str = str(self.experiment_config['global_epochs']) + '_global_epochs'
         nb_clients_str = str(self.experiment_config['nb_clients']) + "_clients"
         
-        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' /  self.experiment_config['training_mode'] /self.experiment_config['dataset_name'] / nb_clients_str / self.experiment_config['data_sampling_technique'] / global_epochs_str / experiment_name
+        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' /  training_mode / dataset_name / nb_clients_str / self.experiment_config['data_sampling_technique'] / global_epochs_str / experiment_name
+        
+        
         print(experiment_folder_path)
         return experiment_folder_path
 

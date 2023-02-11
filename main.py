@@ -25,7 +25,7 @@ dp_config = config['dp_config']
 # Setting experiment
 
 experiment_config = {
-    'training_mode': global_config['training_mode'], 'name': global_config['name'],
+    'training_mode': global_config['training_mode'], 'name': global_config['name'], 'compress_digit': global_config['compress_digit'],
     'dataset_name': data_config['dataset_name'], 'data_sampling_technique': data_config['data_sampling_technique'],
     'overwrite_experiment': global_config['overwrite_experiment'], 
     'nb_clients': fed_config['nb_clients'], 'global_epochs': fed_config['global_epochs']
