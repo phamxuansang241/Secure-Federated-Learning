@@ -1,14 +1,13 @@
 import torch
 from tek4fed.decorator import timer
 from tek4fed import dp_lib, model_lib
+from tek4fed.opacus_lib import PrivacyEngine
 from typing import Callable
 from torch.utils.data import DataLoader
 from torch.utils.data import TensorDataset
 from torch.optim import Adam
 from torch import nn
 import gc
-import time
-from opacus import PrivacyEngine
 
 
 class PriClient:
