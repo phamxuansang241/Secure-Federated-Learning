@@ -1,5 +1,5 @@
 import torch
-from opacus.accountants.analysis import rdp as privacy_analysis
+from tek4fed.opacus_lib.accountants.analysis import rdp as privacy_analysis
 
 
 DEFAULT_ALPHAS = [1 + x / 10.0 for x in range(1, 201)] + list(range(22, 500))
