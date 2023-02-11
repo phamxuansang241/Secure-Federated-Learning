@@ -1,7 +1,7 @@
 import os
 
 
-folder_path = ".\\batch_files\\fed_compress\\csic2010"
+folder_path = ".\\batch_files\\fedavg\\smsspam"
 
 for root, dirs, files in os.walk (folder_path):
     for filename in files:
