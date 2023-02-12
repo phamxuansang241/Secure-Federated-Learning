@@ -39,9 +39,6 @@ class DataSetup:
 
             self.x_test = np.concatenate((x_csic2010_test, x_fwaf_test, x_httpparams_test), axis=0)
             self.y_test = np.concatenate((y_csic2010_test, y_fwaf_test, y_httpparams_test), axis=0)
-        elif self.dataset_name == 'mnist':
-            print('Using mnist dataset ...')
-            (self.x_train, self.y_train), (self.x_test, self.y_test) = data_lib.mnist_load_data()
         elif self.dataset_name == 'smsspam':
             print('Using smsspam dataset ...')
             (self.x_train, self.y_train), (self.x_test, self.y_test) = data_lib.smsspam_load_data()
