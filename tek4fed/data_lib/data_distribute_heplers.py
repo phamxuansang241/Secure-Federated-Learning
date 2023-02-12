@@ -46,7 +46,8 @@ def non_iid_data_indices(nb_clients: int, labels: np.ndarray, num: int = 3):
     for i in range(nb_clients):
         net_dataidx_map[i] = net_dataidx_map[i].tolist()
         
-    return net_dataidx_map
+    chunks = [net_dataidx_map[i] for i in range(nb_clients)]
+    return chunks
 
 
 def non_iid_label_dir_data_indices(nb_clients: int, labels: np.ndarray, beta: float=0.7):
