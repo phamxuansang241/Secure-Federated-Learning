@@ -12,19 +12,41 @@ def iid_data_indices(nb_clients: int, labels: np.ndarray):
     return chunks
 
 
-def non_iid_data_indices(nb_clients: int, labels: np.ndarray, nb_shards: int = 200):
-    labels = labels.flatten()
-    data_len = len(labels)
+def non_iid_data_indices(nb_clients: int, labels: np.ndarray, num: int = 3):
+    nb_class = len(np.unique(labels))
+    print("Number of classes: ", nb_class)
+    times=[0 for i in range(nb_class)]
+    contain=[]
 
-    indices = np.arange(data_len)
-    indices = indices[labels.argsort()]
+    for i in range(nb_clients):
+        current=[i%nb_class]
+        times[i%nb_class] += 1
+        j = 1
+        while (j < num):
+            ind=times.index(min(times))
+            if (ind not in current):
+                j = j + 1
+                current.append(ind)
+                times[ind] += 1
+        print(f'Client {i} with labels {current}')
+        contain.append(current)
+    net_dataidx_map ={i:np.ndarray(0,dtype=np.int64) for i in range(nb_clients)}
 
-    shards = np.array_split(indices, nb_shards)
-    random.shuffle(shards)
-    shards_for_users = np.array_split(shards, nb_clients)
-    indices_for_users = [np.hstack(x) for x in shards_for_users]
-
-    return indices_for_users
+    for i in range(nb_class):
+        idx_k = np.where(labels==i)[0]
+        np.random.shuffle(idx_k)
+        print(f'Label: {i} with {len(idx_k)} samples is divided to {times[i]} clients')
+        
+        split = np.array_split(idx_k, times[i])
+        ids=0
+        for j in range(nb_clients):
+            if i in contain[j]:
+                net_dataidx_map[j]=np.append(net_dataidx_map[j],split[ids])
+                ids+=1
+    for i in range(nb_clients):
+        net_dataidx_map[i] = net_dataidx_map[i].tolist()
+        
+    return net_dataidx_map
 
 
 def non_iid_label_dir_data_indices(nb_clients: int, labels: np.ndarray, beta: float=0.7):
@@ -69,6 +91,8 @@ class DataHandler:
             sampler_fn = iid_data_indices
         elif sampling_technique.lower() == 'noniid_labeldir':
             sampler_fn = non_iid_label_dir_data_indices
+        elif sampling_technique.lower() == 'noniid_label_quantity':
+            sampler_fn = non_iid_data_indices
         
         client_data_indices = sampler_fn(nb_clients, self.y_train)
 
