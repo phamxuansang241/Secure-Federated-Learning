@@ -7,7 +7,6 @@ from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed import fed_learn
 from tek4fed.compress_params_lib import CompressParams
 from tek4fed.encryption_lib import EccEncryption, ElGamalEncryption
-from opacus.validators import ModuleValidator
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch import nn
@@ -58,8 +57,6 @@ class Server:
         print()
 
         self.dp_config = dp_config
-        if global_config['dp_mode'] and not ModuleValidator.is_valid(temp_model):
-            temp_model = ModuleValidator.fix(temp_model)
 
         self.global_test_metrics = {
             'loss': [], 'accuracy': []
@@ -71,8 +68,6 @@ class Server:
         # Initialize the client with differential privacy or not
         if not global_config['dp_mode']:
             self.ClientClass = fed_learn.Client
-        else:
-            self.ClientClass = fed_learn.PriClient
 
         # Initialize the losses
         self.global_train_losses = []
