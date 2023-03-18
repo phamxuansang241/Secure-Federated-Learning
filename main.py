@@ -6,6 +6,7 @@ import copy
 from pathlib import Path
 import json
 import sys
+import time
 
 
 _supported_training_mode = ['fedavg', 'fed_compress', 'fed_ecc', 'fed_elgamal', 'dssgd']
@@ -28,7 +29,7 @@ experiment_config = {
     'training_mode': global_config['training_mode'], 'name': global_config['name'], 'compress_digit': global_config['compress_digit'],
     'dataset_name': data_config['dataset_name'], 'data_sampling_technique': data_config['data_sampling_technique'],
     'overwrite_experiment': global_config['overwrite_experiment'], 
-    'nb_clients': fed_config['nb_clients'], 'global_epochs': fed_config['global_epochs']
+    'nb_clients': fed_config['nb_clients'], 'fraction': fed_config['fraction'], 'global_epochs': fed_config['global_epochs']
 }
 
 experiment = Experiment(experiment_config)
@@ -47,11 +48,10 @@ training_config = {
     }
 
 
-weight_summarizer = FedAvg()
 server = Server(
-    get_model_function(data_config['dataset_name']), weight_summarizer, training_config, fed_config, dp_config
+    get_model_function(data_config['dataset_name']), FedAvg(), training_config, fed_config, dp_config
     )
-
+server.global_weight_path = experiment.global_weight_path
 server.update_training_config(training_config)
 server.create_clients()
 
@@ -64,8 +64,9 @@ server.setup()
 
 # Training model
 print('[INFO] TRAINING MODEL ...')
-
 assert global_config['training_mode'] in _supported_training_mode, "Unsupported training mode, this shouldn't happen"
+
+start_time = time.perf_counter()
 
 if global_config['training_mode'] == 'fedavg':
     server.train_fed()
@@ -77,10 +78,9 @@ elif global_config['training_mode'] == 'fed_ecc':
     server.train_fed_ecc_encryption(short_ver=True)
 elif global_config['training_mode'] == 'dssgd':
     server.train_dssgd()
+end_time = time.perf_counter()
 
-with open(str(experiment.train_hist_path), 'w') as f:
-    test_dict = copy.deepcopy(server.global_test_metrics)
-    json.dump(test_dict, f)
+print(f'[INFO] TOTAL TIME FOR TRAINING ALL EPOCHS {end_time-start_time}')
 
 server.save_model_weights(experiment.global_weight_path)
 

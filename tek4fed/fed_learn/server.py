@@ -19,7 +19,7 @@ import numpy as np
 
 class Server:
     def __init__(self, model_fn: Callable,
-                 weight_summarizer: WeightSummarizer,
+                 weight_summarizer: WeightSummarizer, 
                  global_config=None, fed_config=None, dp_config=None):
 
         if fed_config is None:
@@ -45,9 +45,7 @@ class Server:
         self.model_fn = model_fn
         temp_model = self.model_fn()
 
-        """
-            GET MODEL INFORMATION
-        """
+        # Get model information
         self.model_infor = {'weights_shape': (get_model_infor(temp_model))[0],
                             'total_params': (get_model_infor(temp_model))[1]}
 
@@ -82,6 +80,9 @@ class Server:
         self.clients = []
         self.client_model_weights = []
         self.sum_client_weight = []
+
+        self.max_acc = 0
+        self.global_weight_path = None
 
     def setup(self):
         """Setup all configuration for federated learning"""
@@ -309,23 +310,21 @@ class Server:
                 ).sum().item()
 
         avg_test_loss = total_test_loss / len(self.data_loader)
+        avg_test_loss = avg_test_loss.cpu().detach().item()
         test_correct = test_correct / len(self.x_test)
+        
+        self.global_test_metrics['loss'].append(avg_test_loss)
+        self.global_test_metrics['accuracy'].append(test_correct)
 
-        results_dict = {
-            'loss': avg_test_loss.cpu().detach().item(),
-            'accuracy': test_correct
-        }
-
-        for metric_name, value in results_dict.items():
-            self.global_test_metrics[metric_name].append(value)
+        if isclose(self.max_acc, test_correct) or (test_correct>self.max_acc):
+            self.max_acc = test_correct
+            self.save_model_weights(self.global_weight_path)
 
         get_rid_of_models(temp_model)
         print("\t----- Evaluating on server's test dataset -----")
-        print('{0}: {1}'.format('\tLoss', results_dict['loss']))
-        print('{0}: {1}'.format('\tAccuracy', results_dict['accuracy']))
+        print('{0}: {1}'.format('\t\tLoss', avg_test_loss))
+        print('{0}: {1}'.format('\t\tAccuracy', test_correct))
         print('-' * 100)
-
-        return results_dict
 
     def save_model_weights(self, path):
         temp_model = self.create_model_with_updated_weights()

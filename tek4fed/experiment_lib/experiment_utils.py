@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 from datetime import date
 import matplotlib.pyplot as plt
-
+import copy
 
 
 def get_experiment_result(server, experiment, dataset_name):
@@ -18,7 +18,6 @@ def get_experiment_result(server, experiment, dataset_name):
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model = torch.load(experiment.global_weight_path).to(device)
-    print(experiment.global_weight_path)
 
     model.eval()
     predictions = []
@@ -45,14 +44,14 @@ def get_experiment_result(server, experiment, dataset_name):
         drn = tn / (fp+tn)
         f_1 = (2 * recall * precision) / (recall + precision)
 
-        report_dict = {'TN': tn, 'FP': fp, 'FN': fn, 'TP': tp,
+        result = {'TN': tn, 'FP': fp, 'FN': fn, 'TP': tp,
                        'Accuracy': acc, 'Recall (TPR)': recall,
                        'Precision': precision, 'FPR (Fall-out)': fpr,
                        'DRN': drn, 'F_1 score': f_1}
-    
-    print(json.dumps(report_dict, indent=4))
-    with open(str(experiment.train_hist_path), 'r+') as f:
-        data = json.load(f)
+        report_dict = {'report': result}
+        
+    with open(str(experiment.train_hist_path), 'w') as f:
+        data = copy.deepcopy(server.global_test_metrics)
         data.update(report_dict)
         json.dump(data, f, indent=4)
         
@@ -72,7 +71,7 @@ class Experiment:
 
         self.config_json_path = self.experiment_folder_path / 'config.json'
         self.log_path = self.experiment_folder_path / 'log.txt'
-        self.train_hist_path = self.experiment_folder_path / 'fed_learn_global_test_results.json'
+        self.train_hist_path = self.experiment_folder_path / 'results.json'
         self.global_weight_path = self.experiment_folder_path / 'global_model.pth'
 
     def setup_experiment_folder_path(self):
@@ -84,8 +83,8 @@ class Experiment:
 
         global_epochs_str = str(self.experiment_config['global_epochs']) + '_global_epochs'
         nb_clients_str = str(self.experiment_config['nb_clients']) + "_clients"
-        
-        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' /  training_mode / dataset_name / nb_clients_str / self.experiment_config['data_sampling_technique'] / global_epochs_str / experiment_name
+        fraction = str(self.experiment_config['fraction']) + "_fraction"
+        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' /  training_mode / dataset_name / nb_clients_str / self.experiment_config['data_sampling_technique'] / global_epochs_str / fraction / experiment_name
         
         
         print(experiment_folder_path)

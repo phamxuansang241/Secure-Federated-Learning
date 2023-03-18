@@ -1,7 +1,7 @@
 import os
 
 
-folder_path = ".\\batch_files\\fed_compress\\csic2010\\5_clients"
+folder_path = ".\\batch_files\\fedavg\\mnist\\50_clients\\iid\\50_global_epochs"
 
 for root, dirs, files in os.walk (folder_path):
     for filename in files:
@@ -10,3 +10,4 @@ for root, dirs, files in os.walk (folder_path):
             os.system(os.path.join(root, filename))
             print('\n\n')
         # os.system(os.path.join(folder_path, filename))
+
