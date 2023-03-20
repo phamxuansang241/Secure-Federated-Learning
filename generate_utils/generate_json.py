@@ -44,8 +44,9 @@ config = {
         }
     }
 
+os.chmod('generated_files\\json_files')
 for training_mode in training_modes:
-    folder = f'json_files\{training_mode}'
+    folder = f'\\{training_mode}'
     if os.path.isdir(folder):
         shutil.rmtree(folder)
 
@@ -63,7 +64,7 @@ for training_mode in training_modes:
                         temp_config['fed_config']['nb_clients'] = nb_client
                         temp_config['fed_config']['fraction'] = fr
 
-                        directory = f'json_files/{training_mode}/{dataset}/{nb_client}_clients/{technique}/{ge}_global_epochs/{fr}_fraction'
+                        directory = f'\\{training_mode}\\{dataset}\\{nb_client}_clients\\technique}\\{ge}_global_epochs\\{fr}_fraction'
                         if not os.path.exists(directory):
                             os.makedirs(directory)
 
