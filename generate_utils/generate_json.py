@@ -10,7 +10,7 @@ datasets = ['csic2010', 'mnist', 'smsspam']
 data_sample_technique = ['iid', 'noniid_labeldir']
 global_epochs = [2, 50]
 digits = [3, 5, 10]
-fraction = [0.98, 0.94, 0.9, 0.8]
+fraction = [0.8, 0.7, 0.6, 0.5]
 
 config = {
         "global_config": {
@@ -44,9 +44,9 @@ config = {
         }
     }
 
-os.chmod('generated_files\\json_files')
+
 for training_mode in training_modes:
-    folder = f'\\{training_mode}'
+    folder = f'generate_utils\generated_files\json_files\{training_mode}'
     if os.path.isdir(folder):
         shutil.rmtree(folder)
 
@@ -64,21 +64,25 @@ for training_mode in training_modes:
                         temp_config['fed_config']['nb_clients'] = nb_client
                         temp_config['fed_config']['fraction'] = fr
 
-                        directory = f'\\{training_mode}\\{dataset}\\{nb_client}_clients\\technique}\\{ge}_global_epochs\\{fr}_fraction'
-                        if not os.path.exists(directory):
-                            os.makedirs(directory)
+
+                        sub_directory = f'generate_utils\generated_files\json_files\{training_mode}\{dataset}\{nb_client}_clients\{technique}\{ge}_global_epochs\{fr}_fraction'
+                    
+                        print(sub_directory)
+                        if not os.path.exists(sub_directory):
+                            os.makedirs(sub_directory)
+                            print(os.path.exists(sub_directory))
 
                         if training_mode == 'fed_compress':
                             for dg in digits:
                                 temp_config['global_config']['compress_digit'] = dg
                                 filename = f'config_dg_{dg}.json'
-                                filepath = os.path.join(directory, filename)
+                                filepath = os.path.join(sub_directory, filename)
 
                                 with open(filepath, 'w') as f:
                                     json.dump(temp_config, f, indent=4)
                         else:
                             filename = f'config.json'
-                            filepath = os.path.join(directory, filename)
+                            filepath = os.path.join(sub_directory, filename)
                         
                             with open(filepath, 'w') as f:
                                 json.dump(temp_config, f, indent=4)
