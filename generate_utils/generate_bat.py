@@ -8,11 +8,11 @@ dir_list_x = ['fedavg', 'fed_compress', 'fed_ecc', 'fed_elgamal']
 # datasets
 dir_list_y = ['csic2010', 'mnist', 'smsspam']
 # number of clients
-dir_list_z = [50]
+dir_list_z = [5, 10, 20, 40, 50]
 # number of global epochs
-dir_list_t = ['iid', 'noniid_labeldir']
+dir_list_t = ['iid', 'noniid_label_quantity']
 
-batch_file_base = 'batch_files'
+batch_file_base = 'generate_utils/generated_files/batch_files'
 
 if not os.path.exists(batch_file_base):
     os.makedirs(batch_file_base)
@@ -35,7 +35,7 @@ for x in dir_list_x:
                 with open(batch_file, 'w') as f:
                     f.write('@echo off\n\n')
                     f.write(f'    echo +++++++++\n')
-                    f.write(f'for /f "delims=" %%a in (\'dir /s /b .\\json_files\\{x}\\{y}\\{z}\\{t}\\50_global_epochs\\*.json\') do (\n')
+                    f.write(f'for /f "delims=" %%a in (\'dir /s /b .\\generate_utils\\generated_files\\json_files\\{x}\\{y}\\{z}\\{t}\\50_global_epochs\\*.json\') do (\n')
                     f.write(f'    python main.py -cf "%%a"\n')
                     f.write(f'    echo python main.py -cf "%%a"\n')
                     f.write(f'    echo +++++++++\n')

@@ -1,7 +1,7 @@
 import os
 
 
-folder_path = ".\\batch_files\\fedavg\\mnist\\50_clients\\iid\\50_global_epochs"
+folder_path = "generate_utils\\generated_files\\batch_files\\fedavg\\mnist"
 
 for root, dirs, files in os.walk (folder_path):
     for filename in files:
