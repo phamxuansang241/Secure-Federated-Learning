@@ -31,18 +31,37 @@ class LSTMNet(nn.Module):
         # Prediction activation function
         self.softmax = nn.Softmax(dim=1)
     
-    def forward(self, x_batch):
-        embedded = self.embedding(x_batch)
+    # def forward(self, x_batch):
+    #     embedded = self.embedding(x_batch)
 
-        hidden_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device) # 2 for bidirectional
-        carry_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device)
+    #     hidden_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device) # 2 for bidirectional
+    #     carry_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device)
 
-        output, (hidden_1, carry_1) = self.lstm_1(embedded, (hidden_0, carry_0))
+    #     output, (hidden_1, carry_1) = self.lstm_1(embedded, (hidden_0, carry_0))
 
-        output = self.tanh(output)
-        output, _ = self.lstm_2(output, (hidden_1, carry_1))
+    #     output = self.tanh(output)
+    #     output, _ = self.lstm_2(output, (hidden_1, carry_1))
 
-        output = self.fc(output[:, -1, :])
-        output = self.softmax(output)
+    #     output = self.fc(output[:, -1, :])
+    #     output = self.softmax(output)
 
+    #     return output
+    
+    def forward(self, x_batch): 
+        embedded = self.embedding(x_batch) 
+    
+        hidden_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device) # 2 for bidirectional 
+        carry_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device) 
+    
+        self.lstm_1.flatten_parameters()  # Add this line 
+        output, (hidden_1, carry_1) = self.lstm_1(embedded, (hidden_0, carry_0)) 
+    
+        output = self.tanh(output) 
+    
+        self.lstm_2.flatten_parameters()  # Add this line 
+        output, _ = self.lstm_2(output, (hidden_1, carry_1)) 
+    
+        output = self.fc(output[:, -1, :]) 
+        output = self.softmax(output) 
+    
         return output

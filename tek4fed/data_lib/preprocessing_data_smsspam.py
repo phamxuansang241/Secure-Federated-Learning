@@ -3,7 +3,7 @@ from torchtext.vocab import build_vocab_from_iterator
 import string
 import nltk
 
-nltk.download('stopwords')
+nltk.download('stopwords', quiet=True)
 from nltk.corpus import stopwords
 from textblob import Word
 import numpy as np
@@ -19,10 +19,9 @@ def cleaning_smsspam_dataset(df_data):
     ))
 
     # delete punctuation marks
-    df_data['text'] = df_data['text'].str.replace('[^\w\s]', '')
-
+    df_data['text'] = df_data['text'].str.replace('[^\w\s]', '', regex=True)
     # delete numbers from texts
-    df_data['text'] = df_data['text'].str.replace('\d', '')
+    df_data['text'] = df_data['text'].str.replace('\d', '', regex=True)
 
     # delete stopwords and punctuation
     stop_words = set(stopwords.words('english'))
