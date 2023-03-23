@@ -5,13 +5,13 @@ import copy
 
 
 training_modes = ['fedavg', 'fed_compress', 'fed_ecc', 'fed_elgamal']
-nb_clients = [5, 10, 20, 40, 50]
-datasets = ['mnist']
-data_sample_technique = ['iid', 'noniid_label_quantity']
+nb_clients = [50]
+datasets = ['smsspam']
+data_sample_technique = ['iid', 'noniid_label_dir']
 global_epochs = [50]
 digits = [3, 5, 10]
-fraction = [1.0]
-# fraction = [0.9, 0.8, 0.7, 0.6, 0.5]
+# fraction = [1.0]
+fraction = [0.9, 0.8, 0.7, 0.6, 0.5]
 
 config = {
         "global_config": {
@@ -19,7 +19,7 @@ config = {
             "overwrite_experiment": True,
             "device": "cuda",
             "training_mode": 'fedavg',
-            "compress_digit": 3,
+            "compress_digit": 15,
             "dp_mode": False
         },
         "data_config": {
