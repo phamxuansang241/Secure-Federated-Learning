@@ -38,19 +38,23 @@ def get_client_iter(
 ):
     min_step = 0
     max_step = 1
-
+    best_alphas = alphas
+    
     while get_privacy_spent_with_fixed_noise(
-        sample_rate, max_eps, delta, sigma=sigma, alphas=alphas
+        sample_rate, max_step, delta, sigma=sigma, alphas=best_alphas
     )[0] <= max_eps:
+        
+        best_alphas = get_privacy_spent_with_fixed_noise(sample_rate, max_step, delta, sigma=sigma, alphas=best_alphas)[1]
         min_step = max_step
         max_step = max_step * 2
 
+    print(max_step)
     max_step = max_step - 1
 
     while min_step < max_step:
         mid_step = (min_step + max_step + 1) // 2
-        eps_used, best_alpha = get_privacy_spent_with_fixed_noise(
-            sample_rate, mid_step, delta, sigma=sigma, alphas=alphas
+        eps_used, best_alphas = get_privacy_spent_with_fixed_noise(
+            sample_rate, mid_step, delta, sigma=sigma, alphas=best_alphas
         )
 
         if max_eps < eps_used:

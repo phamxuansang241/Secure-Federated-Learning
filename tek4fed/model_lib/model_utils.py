@@ -74,7 +74,7 @@ def get_rid_of_models(model=None):
     gc.collect()
 
 
-def get_model_function(dataset_name):
+def get_model_function(dataset_name, dp_mode):
     def model_function():
         if dataset_name == 'mnist':
             model = model_lib.Mnist_Net(num_class=10)
@@ -82,7 +82,6 @@ def get_model_function(dataset_name):
             model = model_lib.LSTMNet(vocab_size=6972, embed_dim=64, hidden_dim=16, nb_classes=2, n_layers=2)
         else:
             model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
-        return model
 
         if dp_mode and not ModuleValidator.is_valid(model):
             model = ModuleValidator.fix(model)

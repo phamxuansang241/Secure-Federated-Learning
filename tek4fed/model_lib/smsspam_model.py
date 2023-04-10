@@ -53,12 +53,12 @@ class LSTMNet(nn.Module):
         hidden_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device) # 2 for bidirectional 
         carry_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device) 
     
-        self.lstm_1.flatten_parameters()  # Add this line 
+        # self.lstm_1.flatten_parameters()  # Add this line 
         output, (hidden_1, carry_1) = self.lstm_1(embedded, (hidden_0, carry_0)) 
     
         output = self.tanh(output) 
     
-        self.lstm_2.flatten_parameters()  # Add this line 
+        # self.lstm_2.flatten_parameters()  # Add this line 
         output, _ = self.lstm_2(output, (hidden_1, carry_1)) 
     
         output = self.fc(output[:, -1, :]) 

@@ -82,7 +82,7 @@ class PriClient:
             self.sigma = float(dp_config['sigma'])
             sample_rate = 1 / len(self.data_loader)
             self.max_allow_iter = dp_lib.get_client_iter(
-                sample_rate=sample_rate, max_eps=self.sigma, delta=self.delta, sigma=self.sigma
+                sample_rate=sample_rate, max_eps=self.epsilon, delta=self.delta, sigma=self.sigma
             )
             print(f'Under sigma = {self.sigma} and sample_rate = {sample_rate}, '
                   f'the maximum iterations of client {self.index} is {self.max_allow_iter}')
