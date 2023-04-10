@@ -1,6 +1,4 @@
 from tek4fed.decorator import print_decorator
-from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models,\
-     set_model_weights
 from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models, set_model_weights, \
     get_dssgd_update
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
@@ -20,10 +18,8 @@ import numpy as np
 class Server:
     def __init__(self, model_fn: Callable,
                  weight_summarizer: WeightSummarizer, 
-                 global_config=None, fed_config=None, dp_config=None):
+                 dp_mode, fed_config=None, dp_config=None):
 
-        if fed_config is None:
-            fed_config = {}
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.x_test = None
         self.y_test = None
@@ -34,12 +30,7 @@ class Server:
         self.weight_summarizer = weight_summarizer
 
         # Training config used by the clients
-        self.training_config = {
-            'batch_size': 32,
-            'global_epochs': 5,
-            'local_epochs': 1,
-            'lr': 0.001
-        }
+        self.training_config = {}
 
         # Initialize the global model's weights
         self.model_fn = model_fn
@@ -56,8 +47,7 @@ class Server:
         print()
 
         self.dp_config = dp_config
-        if global_config['dp_mode'] and not ModuleValidator.is_valid(temp_model):
-            temp_model = ModuleValidator.fix(temp_model)
+        self.dp_mode = dp_mode
 
         self.global_test_metrics = {
             'loss': [], 'accuracy': []
@@ -67,7 +57,7 @@ class Server:
         get_rid_of_models(temp_model)
 
         # Initialize the client with differential privacy or not
-        if not global_config['dp_mode']:
+        if not self.dp_mode:
             self.ClientClass = fed_learn.Client
         else:
             self.ClientClass = fed_learn.PriClient
@@ -106,6 +96,10 @@ class Server:
 
     def create_model_with_updated_weights(self):
         temp_model = self.model_fn()
+
+        if self.dp_mode and not ModuleValidator.is_valid(temp_model):
+            temp_model = ModuleValidator.fix(temp_model)
+
         set_model_weights(temp_model, self.global_model_weights, used_device=self.device)
         return temp_model
 
@@ -149,7 +143,6 @@ class Server:
     def update_training_config(self, config: dict):
         self.training_config.update(config)
 
-
     def train_fed(self):
         def train():
             self.init_for_new_epoch()
@@ -179,7 +172,6 @@ class Server:
             print_decorator(epoch)(train)()
             # testing current model_lib
             self.test_global_model()
-
 
     def train_fed_compress(self):
         compress_params = CompressParams(self.training_config['compress_digit'])
@@ -217,7 +209,7 @@ class Server:
             # testing current model_lib
             self.test_global_model()
 
-    def train_fed_ecc_encryption(self, short_ver=False):
+    def train_fed_ecc_encryption(self, short_ver=True):
         mtx_size = ceil(sqrt(self.model_infor['total_params']))
 
         encrypt = EccEncryption(self.nb_clients, mtx_size)
@@ -254,13 +246,12 @@ class Server:
             # testing current model_lib
             self.test_global_model()
 
-    def train_fed_elgamal_encryption(self, short_ver=False):
+    def train_fed_elgamal_encryption(self):
         mtx_size = ceil(sqrt(self.model_infor['total_params']))
 
         encrypt = ElGamalEncryption(self.nb_clients, mtx_size)
         encrypt.generate_client_noise_mtx()
         encrypt.generate_client_key()
-
 
         for epoch in range(self.training_config['global_epochs']):
             print('[TRAINING] Global Epoch {0} starts ...'.format(epoch))
@@ -316,7 +307,7 @@ class Server:
         self.global_test_metrics['loss'].append(avg_test_loss)
         self.global_test_metrics['accuracy'].append(test_correct)
 
-        if isclose(self.max_acc, test_correct) or (test_correct>self.max_acc):
+        if isclose(self.max_acc, test_correct) or (test_correct > self.max_acc):
             self.max_acc = test_correct
             self.save_model_weights(self.global_weight_path)
 
@@ -353,13 +344,7 @@ class Server:
                 print('\t Client {} starts training'.format(client.index))
                 set_model_weights(client.model, self.global_model_weights, client.device)
                 client.edge_train()
-                self.global_model_weights = get_dssgd_update(client.model, self.global_model_weights, self.model_infor['weights_shape'], theta_upload=0.9)
+                self.global_model_weights = get_dssgd_update(client.model, self.global_model_weights,
+                                                             self.model_infor['weights_shape'], theta_upload=0.9)
 
             self.test_global_model()
-                
-
-
-
-
-
-

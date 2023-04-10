@@ -4,6 +4,7 @@ import gc
 import numpy as np
 import copy
 from typing import List
+from opacus.validators import ModuleValidator
 
 
 def set_model_weights(model, weights_list: List[np.ndarray], to_device=True, used_device='cpu'):
@@ -78,11 +79,17 @@ def get_model_function(dataset_name):
         if dataset_name == 'mnist':
             model = model_lib.Mnist_Net(num_class=10)
         elif dataset_name == 'smsspam':
-            model = model_lib.LSTMNet(vocab_size=6972, embed_dim=128, hidden_dim=32, nb_classes=2, n_layers=2)
+            model = model_lib.LSTMNet(vocab_size=6972, embed_dim=64, hidden_dim=16, nb_classes=2, n_layers=2)
         else:
             model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
         return model
 
+        if dp_mode and not ModuleValidator.is_valid(model):
+            model = ModuleValidator.fix(model)
+
+        return model
+            
+        
     return model_function
 
 

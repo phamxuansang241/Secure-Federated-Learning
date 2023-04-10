@@ -2,8 +2,6 @@ from tek4fed.fed_learn import get_args, Server, FedAvg
 from tek4fed.model_lib import get_model_function
 from tek4fed.data_lib import DataSetup
 from tek4fed.experiment_lib import Experiment, get_experiment_result
-import copy
-from pathlib import Path
 import json
 import sys
 import time
@@ -28,7 +26,7 @@ dp_config = config['dp_config']
 experiment_config = {
     'training_mode': global_config['training_mode'], 'name': global_config['name'], 'compress_digit': global_config['compress_digit'],
     'dataset_name': data_config['dataset_name'], 'data_sampling_technique': data_config['data_sampling_technique'],
-    'overwrite_experiment': global_config['overwrite_experiment'], 
+    'overwrite_experiment': global_config['overwrite_experiment'],
     'nb_clients': fed_config['nb_clients'], 'fraction': fed_config['fraction'], 'global_epochs': fed_config['global_epochs']
 }
 
@@ -49,7 +47,10 @@ training_config = {
 
 
 server = Server(
-    get_model_function(data_config['dataset_name']), FedAvg(), training_config, fed_config, dp_config
+    model_fn=get_model_function(data_config['dataset_name'], global_config['dp_mode']),
+    weight_summarizer=FedAvg(),
+    dp_mode=global_config['dp_mode'],
+    fed_config=fed_config, dp_config=dp_config
     )
 server.global_weight_path = experiment.global_weight_path
 server.update_training_config(training_config)
@@ -73,7 +74,7 @@ if global_config['training_mode'] == 'fedavg':
 elif global_config['training_mode'] == 'fed_compress':
     server.train_fed_compress()
 elif global_config['training_mode'] == 'fed_elgamal':
-    server.train_fed_elgamal_encryption(short_ver=True)
+    server.train_fed_elgamal_encryption()
 elif global_config['training_mode'] == 'fed_ecc':
     server.train_fed_ecc_encryption(short_ver=True)
 elif global_config['training_mode'] == 'dssgd':
