@@ -53,4 +53,3 @@ class ElGamalEncryptionServer(BaseServer):
 
             # testing current model_lib
             self.test_global_model()
-            

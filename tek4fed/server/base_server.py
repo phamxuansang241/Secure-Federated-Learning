@@ -5,6 +5,7 @@ from torch import nn
 from math import *
 from typing import Callable
 from tek4fed.server import ServerInterface
+from tek4fed.client import NormalClient, PriClient
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed.model_lib import (
     get_model_weights,
@@ -12,7 +13,6 @@ from tek4fed.model_lib import (
     get_rid_of_models,
     set_model_weights,
 )
-from tek4fed import fed_learn
 
 
 class BaseServer(ServerInterface):
@@ -90,9 +90,9 @@ class BaseServer(ServerInterface):
 
         # Initialize the client with differential privacy or not
         if not self.dp_mode:
-            self.ClientClass = fed_learn.Client
+            self.ClientClass = NormalClient
         else:
-            self.ClientClass = fed_learn.PriClient
+            self.ClientClass = PriClient
 
         # Initialize the losses
         self.global_train_losses = []

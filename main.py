@@ -1,4 +1,4 @@
-from tek4fed.fed_learn import get_args, Server, FedAvg
+from tek4fed.fed_learn import FedAvg
 from tek4fed.model_lib import get_model_function
 from tek4fed.data_lib import DataSetup
 from tek4fed.experiment_lib import Experiment, get_experiment_result

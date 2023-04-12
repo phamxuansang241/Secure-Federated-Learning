@@ -1,8 +1,7 @@
 from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 import string
-import nltk
-
+import nl
 nltk.download('stopwords', quiet=True)
 from nltk.corpus import stopwords
 from textblob import Word
