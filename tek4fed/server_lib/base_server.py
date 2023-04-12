@@ -6,7 +6,7 @@ from math import *
 from typing import Callable
 from tek4fed.server_lib import ServerInterface
 from tek4fed.client import NormalClient, PriClient
-from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
+from tek4fed.summarizer_lib.weight_summarizer import WeightSummarizer
 from tek4fed.model_lib import (
     get_model_weights,
     get_model_infor,

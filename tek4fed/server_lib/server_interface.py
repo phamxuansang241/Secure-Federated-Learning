@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
+from tek4fed.summarizer_lib.weight_summarizer import WeightSummarizer
 from typing import Callable
 
 

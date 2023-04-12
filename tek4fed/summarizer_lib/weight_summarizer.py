@@ -46,7 +46,3 @@ class FedAvg(WeightSummarizer):
             new_weight[layer_index] = np.float32(new_weight[layer_index])
 
         return new_weight
-
-
-
-

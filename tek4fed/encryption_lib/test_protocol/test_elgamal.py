@@ -1,4 +1,4 @@
-from tek4fed.fed_learn import get_args, Server, FedAvg
+from tek4fed.summarizer_lib import get_args, Server, FedAvg
 from tek4fed.data_lib import DataSetup
 import json
 import tek4fed.encryption_lib
