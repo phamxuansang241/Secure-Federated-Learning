@@ -1,24 +1,32 @@
 from tek4fed.decorator import print_decorator
-from tek4fed.model_lib import get_model_weights, get_model_infor, get_rid_of_models, set_model_weights, \
+from tek4fed.model_lib import (
+    get_model_weights, 
+    get_model_infor, 
+    get_rid_of_models, 
+    set_model_weights, 
     get_dssgd_update
+)
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed import fed_learn
 from tek4fed.compress_params_lib import CompressParams
 from tek4fed.encryption_lib import EccEncryption, ElGamalEncryption
-from opacus.validators import ModuleValidator
+
+import numpy as np
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from torch import nn
-
 from math import *
 from typing import Callable
-import numpy as np
 
 
 class Server:
-    def __init__(self, model_fn: Callable,
-                 weight_summarizer: WeightSummarizer, 
-                 dp_mode, fed_config=None, dp_config=None):
+    def __init__(self, 
+        model_fn: Callable,
+        weight_summarizer: WeightSummarizer, 
+        dp_mode, 
+        fed_config=None, 
+        dp_config=None
+    ):
 
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.x_test = None
@@ -96,10 +104,6 @@ class Server:
 
     def create_model_with_updated_weights(self):
         temp_model = self.model_fn()
-
-        if self.dp_mode and not ModuleValidator.is_valid(temp_model):
-            temp_model = ModuleValidator.fix(temp_model)
-
         set_model_weights(temp_model, self.global_model_weights, used_device=self.device)
         return temp_model
 
@@ -300,8 +304,7 @@ class Server:
                     torch.float
                 ).sum().item()
 
-        avg_test_loss = total_test_loss / len(self.data_loader)
-        avg_test_loss = avg_test_loss.cpu().detach().item()
+        avg_test_loss = (total_test_loss / len(self.data_loader)).cpu().detach().item()
         test_correct = test_correct / len(self.x_test)
         
         self.global_test_metrics['loss'].append(avg_test_loss)

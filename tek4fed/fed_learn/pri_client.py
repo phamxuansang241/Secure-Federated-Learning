@@ -44,7 +44,7 @@ class PriClient:
         Args:
             client_config (dict): Configuration details for the client.
         """
-        training_config = client_config['training_config']
+        training_config = client_config['training_config']``
         batch_size = training_config['batch_size']
         self.local_epochs = training_config['local_epochs']
         self.lr = 0.001
