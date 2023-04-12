@@ -4,7 +4,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from torch import nn
 from math import *
 from typing import Callable
-from tek4fed.server import ServerInterface
+from tek4fed.server_lib import ServerInterface
 from tek4fed.client import NormalClient, PriClient
 from tek4fed.fed_learn.weight_summarizer import WeightSummarizer
 from tek4fed.model_lib import (
@@ -124,6 +124,9 @@ class BaseServer(ServerInterface):
         for client in self.clients:
             self.send_model(client)
             client.setup(**client_config)
+
+    def update_training_config(self, config: dict):
+        self.training_config.update(config)
 
     def create_clients(self):
         for i in range(self.nb_clients):

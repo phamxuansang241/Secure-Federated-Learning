@@ -1,12 +1,13 @@
-from tek4fed.server import BaseServer
-from tek4fed.model_lib import get_model_weights, set_model_weights
+from tek4fed.server_lib import BaseServer
+from tek4fed.compress_params_lib import CompressParams
 from tek4fed.decorator import print_decorator
+from tek4fed.model_lib import set_model_weights
 import numpy as np
 
 
-class FedServer(BaseServer):
+class FedCompressServer(BaseServer):
     """
-    A subclass of BaseServer that implements federated learning with average aggregation.
+    A subclass of BaseServer that implements federated learning with model compression.
     """
 
     def __init__(self, *args, **kwargs):
@@ -14,14 +15,15 @@ class FedServer(BaseServer):
 
     def train(self):
         """
-        Trains the model using the federated learning method.
+        Trains the model using the federated learning method with model compression.
         """
-        self.train_fed()
+        self.train_fed_compress()
 
-    def train_fed(self):
+    def train_fed_compress(self):
         """
-        Implementation of the federated learning training method.
+        Implementation of the federated learning with model compression training method.
         """
+        compress_params = CompressParams(self.training_config['compress_digit'])
 
         def epoch_train():
             self.init_for_new_epoch()
@@ -37,9 +39,13 @@ class FedServer(BaseServer):
                 set_model_weights(client.model, self.global_model_weights, client.device)
                 client_losses = client.edge_train()
 
+                print('\t\t Encoding parameters ...')
+                compress_params.encode_model(client=client)
+
                 self.epoch_losses.append(client_losses[-1])
 
-                self.client_model_weights.append(get_model_weights(client.model))
+            decoded_weights = compress_params.decode_model(selected_clients)
+            self.client_model_weights = decoded_weights.copy()
             self.summarize_weights()
 
             epoch_mean_loss = np.mean(self.epoch_losses)

@@ -1,4 +1,4 @@
-from tek4fed.server import BaseServer
+from tek4fed.server_lib import BaseServer
 from tek4fed.model_lib import set_model_weights
 from tek4fed.encryption_lib import ElGamalEncryption
 from math import *

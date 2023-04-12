@@ -1,3 +1,4 @@
+from tek4fed import get_args, server_lib
 from tek4fed.fed_learn import FedAvg
 from tek4fed.model_lib import get_model_function
 from tek4fed.data_lib import DataSetup
@@ -45,13 +46,26 @@ training_config = {
     'local_epochs': fed_config['local_epochs']
     }
 
+training_mode = global_config['training_mode']
+server_cls = None
+if training_mode == 'fedavg':
+    server_cls = server_lib.FedServer
+elif global_config['training_mode'] == 'fed_compress':
+    server_cls = server_lib.FedCompressServer
+elif global_config['training_mode'] == 'fed_elgamal':
+    server_cls = server_lib.ElGamalEncryptionServer
+elif global_config['training_mode'] == 'fed_ecc':
+    server_cls = server_lib.EccEncryptionServer
+elif global_config['training_mode'] == 'dssgd':
+    server_cls = None
 
-server = Server(
+server = server_cls(
     model_fn=get_model_function(data_config['dataset_name'], global_config['dp_mode']),
     weight_summarizer=FedAvg(),
     dp_mode=global_config['dp_mode'],
     fed_config=fed_config, dp_config=dp_config
     )
+
 server.global_weight_path = experiment.global_weight_path
 server.update_training_config(training_config)
 server.create_clients()
@@ -68,17 +82,7 @@ print('[INFO] TRAINING MODEL ...')
 assert global_config['training_mode'] in _supported_training_mode, "Unsupported training mode, this shouldn't happen"
 
 start_time = time.perf_counter()
-
-if global_config['training_mode'] == 'fedavg':
-    server.train_fed()
-elif global_config['training_mode'] == 'fed_compress':
-    server.train_fed_compress()
-elif global_config['training_mode'] == 'fed_elgamal':
-    server.train_fed_elgamal_encryption()
-elif global_config['training_mode'] == 'fed_ecc':
-    server.train_fed_ecc_encryption(short_ver=True)
-elif global_config['training_mode'] == 'dssgd':
-    server.train_dssgd()
+server.train()
 end_time = time.perf_counter()
 
 print(f'[INFO] TOTAL TIME FOR TRAINING ALL EPOCHS {end_time-start_time}')

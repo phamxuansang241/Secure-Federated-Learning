@@ -23,6 +23,10 @@ class ServerInterface(ABC):
         pass
 
     @abstractmethod
+    def update_training_config(self, config: dict):
+        pass
+
+    @abstractmethod
     def create_clients(self):
         """
         Creates clients for training.

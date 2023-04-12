@@ -1,4 +1,4 @@
-from tek4fed.server import BaseServer
+from tek4fed.server_lib import BaseServer
 from tek4fed.model_lib import set_model_weights
 from tek4fed.encryption_lib import EccEncryption
 from math import *
@@ -17,7 +17,7 @@ class EccEncryptionServer(BaseServer):
         """
         Trains the model using the federated learning method with ECC encryption.
         """
-        self.train_fed_ecc_encryption()
+        self.train_fed_ecc_encryption(short_ver=False)
 
     def train_fed_ecc_encryption(self, short_ver=True):
         mtx_size = ceil(sqrt(self.model_infor['total_params']))
