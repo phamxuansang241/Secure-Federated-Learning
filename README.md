@@ -43,21 +43,21 @@ To install the required dependencies in requirements.txt:
 This section outlines the necessary steps for utilizing the Secure Federated Learning framework.
 
 ### Installation
-'''
+```
 $ git clone https://github.com/phamxuansang241/Secure-Federated-Learning.git
 $ cd Secure-Federated-Learning
 $ pip install -r requirements.txt
-'''
+```
 
 ### Running the Project
 Execute the following command to run the project:
-'''
+```
 $ python main.py -cf config.json
-'''
+```
 Here, config.json is a configuration file specifying the training settings, as well as client and server configurations.
 
 ### Configuration Template
-'''
+```
 Below is a sample configuration file template (config.json):
 {
     "global_config": {
@@ -91,4 +91,13 @@ Below is a sample configuration file template (config.json):
         "client_iter": 5000
     }
 }
-'''
+```
+This configuration file consists of the following sections:
+
+- global_config: Contains general settings for the experiment, such as device, training mode, and differential privacy mode.
+- data_config: Specifies the dataset and data sampling technique to be used.
+- fed_config: Contains parameters for federated learning, such as global and local epochs, number of clients, and batch size.
+- optim_config: Provides optimization settings, such as the learning rate.
+- dp_config: Configures differential privacy parameters, including epsilon, delta, clipping norm, and sigma.
+
+Modify the parameters in the configuration file according to your specific requirements and experiment settings.
