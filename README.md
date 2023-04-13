@@ -39,3 +39,56 @@ To install the required dependencies in requirements.txt:
 - numpy==1.24.1
 - matplotlib==3.7.1
 
+## Usage
+This section outlines the necessary steps for utilizing the Secure Federated Learning framework.
+
+### Installation
+'''
+$ git clone https://github.com/phamxuansang241/Secure-Federated-Learning.git
+$ cd Secure-Federated-Learning
+$ pip install -r requirements.txt
+'''
+
+### Running the Project
+Execute the following command to run the project:
+'''
+$ python main.py -cf config.json
+'''
+Here, config.json is a configuration file specifying the training settings, as well as client and server configurations.
+
+### Configuration Template
+'''
+Below is a sample configuration file template (config.json):
+{
+    "global_config": {
+        "name": "Test (No noise)",
+        "overwrite_experiment": true,
+        "device": "cuda ",
+        "training_mode": "dssgd",
+        "compress_digit": 10,
+        "dp_mode": false
+    },
+    "data_config": {
+        "dataset_name": "smsspam",
+        "data_sampling_technique": "iid"
+    },
+    "fed_config": {
+        "global_epochs": 50,
+        "local_epochs": 1,
+        "nb_clients": 10,
+        "fraction": 1.0,
+        "batch_size": 64
+    },
+    "optim_config": {
+        "lr": 0.001
+    },
+    "dp_config": {
+        "epsilon": 10000,
+        "delta": 1e-05,
+        "clipping_norm": 1.0,
+        "sigma": 0.1,
+        "is_fixed_client_iter": false,
+        "client_iter": 5000
+    }
+}
+'''
