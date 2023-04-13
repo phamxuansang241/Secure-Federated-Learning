@@ -4,13 +4,18 @@ import shutil
 
 
 # training mode
-dir_list_x = ['fedavg', 'fed_compress', 'fed_ecc', 'fed_elgamal']
+dir_list_x = ['dssgd']
 # datasets
-dir_list_y = ['csic2010', 'mnist', 'smsspam']
+dir_list_y = ['csic2010', 'smsspam']
+# dir_list_y = ['mnist']
 # number of clients
-dir_list_z = [5, 10, 20, 40, 50]
+dir_list_z = [10]
+# dir_list_z = [5, 10, 20, 40, 50]
 # number of global epochs
-dir_list_t = ['iid', 'noniid_label_quantity']
+
+dir_list_t = ['iid', 'noniid_label_dir']
+# dir_list_t = ['iid', 'noniid_label_quantity']
+
 
 batch_file_base = 'generate_utils/generated_files/batch_files'
 

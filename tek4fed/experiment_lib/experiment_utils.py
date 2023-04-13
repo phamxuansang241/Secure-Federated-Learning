@@ -5,7 +5,6 @@ import torch
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 from datetime import date
-import matplotlib.pyplot as plt
 import copy
 
 
@@ -32,7 +31,7 @@ def get_experiment_result(server, experiment, dataset_name):
     predictions = np.array(predictions)
     score = None
     if num_class[dataset_name] > 2:
-        score = classification_report(y_test, predictions.argmax(axis=1), output_dict=True)
+        score = classification_report(y_test, predictions.argmax(axis=1), output_dict=True, zero_division=1)
         report_dict = {'report': score}
     else:
         score = confusion_matrix(y_test, predictions.argmax(axis=1)) * 1.0
@@ -45,9 +44,9 @@ def get_experiment_result(server, experiment, dataset_name):
         f_1 = (2 * recall * precision) / (recall + precision)
 
         result = {'TN': tn, 'FP': fp, 'FN': fn, 'TP': tp,
-                       'Accuracy': acc, 'Recall (TPR)': recall,
-                       'Precision': precision, 'FPR (Fall-out)': fpr,
-                       'DRN': drn, 'F_1 score': f_1}
+                  'Accuracy': acc, 'Recall (TPR)': recall,
+                  'Precision': precision, 'FPR (Fall-out)': fpr,
+                  'DRN': drn, 'F_1 score': f_1}
         report_dict = {'report': result}
         
     with open(str(experiment.train_hist_path), 'w') as f:
@@ -84,9 +83,8 @@ class Experiment:
         global_epochs_str = str(self.experiment_config['global_epochs']) + '_global_epochs'
         nb_clients_str = str(self.experiment_config['nb_clients']) + "_clients"
         fraction = str(self.experiment_config['fraction']) + "_fraction"
-        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' /  training_mode / dataset_name / nb_clients_str / self.experiment_config['data_sampling_technique'] / global_epochs_str / fraction / experiment_name
-        
-        
+        experiment_folder_path = Path('FL-DP').resolve().parent / 'experiments' / training_mode / dataset_name / nb_clients_str / self.experiment_config['data_sampling_technique'] / global_epochs_str / fraction / experiment_name
+
         print(experiment_folder_path)
         return experiment_folder_path
 

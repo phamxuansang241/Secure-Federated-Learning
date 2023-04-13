@@ -4,18 +4,20 @@ import shutil
 import copy
 
 
-training_modes = ['fedavg', 'fed_compress', 'fed_ecc', 'fed_elgamal']
-nb_clients = [50]
-datasets = ['smsspam']
+training_modes = ['dssgd']
+nb_clients = [10]
+datasets = ['csic2010', 'smsspam']
+# datasets = ['mnist']
 data_sample_technique = ['iid', 'noniid_label_dir']
+# data_sample_technique = ['iid', 'noniid_label_quantity']
 global_epochs = [50]
 digits = [3, 5, 10]
-# fraction = [1.0]
-fraction = [0.9, 0.8, 0.7, 0.6, 0.5]
+fraction = [1.0]
+# fraction = [0.9, 0.8, 0.7, 0.6, 0.5]
 
 config = {
         "global_config": {
-            "name": "Test",
+            "name": "Test - 50% - Upload",
             "overwrite_experiment": True,
             "device": "cuda",
             "training_mode": 'fedavg',
