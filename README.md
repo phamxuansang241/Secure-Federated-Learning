@@ -11,7 +11,7 @@ The proposed framework has been effectively applied to address complex challenge
 ## Table of Contents
 
 - [Background](#background)
-- [Installation](#installation)
+- [Requirements](#requirements)
 - [Usage](#usage)
 - [Results](#results)
 - [Contributing](#contributing)
