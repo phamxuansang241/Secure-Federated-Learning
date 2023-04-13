@@ -26,4 +26,16 @@ However, federated learning still poses some security risks, such as malicious c
 ## Requirements
 
 To install the required dependencies in requirements.txt:
+- functorch==0.2.1
+- gmpy2==2.1.5
+- opacus==1.3.0
+- torch==1.12.1
+- torchvision==0.13.1
+- torchtext==0.13.1
+- tinyec==0.4.
+- seaborn==0.11.20
+- pandas==1.5.2
+- scikit-learn==1.2.0
+- numpy==1.24.1
+- matplotlib==3.7.1
 
