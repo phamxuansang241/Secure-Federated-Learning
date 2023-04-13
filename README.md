@@ -1,6 +1,12 @@
-# Secure Federated Learning Framework using Elgamal and Elliptic Curve Encryption
+# Secure Federated Learning Framework with Encryption Aggregation and Integer Encoding Method.
 
-This repository contains a secure federated learning framework that uses Elgamal and Elliptic Curve encryption protocols for multi-party computation. The framework has been applied to training deep learning models in a distributed manner on CSIC2010, MNIST, and SMSSPAM datasets. 
+This research repository presents an advanced, secure federated learning framework, incorporating Elgamal and Elliptic Curve encryption protocols to facilitate multi-party computation among distributed clients. Additionally, the project employs an integer encoding technique to optimize client model weights, substantially reducing both computational and communication costs.
+
+The proposed framework has been effectively applied to address complex challenges in a distributed data setting, including web attack detection, handwritten digit recognition, and spam email identification. Specifically, the following applications were explored:
+
+Web attack detection: Investigating and analyzing HTTP request data to identify potential threats. Experiments were conducted utilizing the CSIC2010 dataset.
+Handwritten digit recognition: Accurately recognizing handwritten numerical characters. Experiments were conducted using the MNIST dataset.
+Spam email detection: Identifying and filtering unsolicited emails. Experiments were conducted employing the SMSSPAM dataset.
 
 ## Table of Contents
 
@@ -17,7 +23,7 @@ Federated learning is a decentralized approach to train machine learning models 
 
 However, federated learning still poses some security risks, such as malicious clients trying to manipulate the model or leak sensitive data. To mitigate these risks, this repository implements a secure federated learning framework using Elgamal and Elliptic Curve encryption protocols. These protocols provide strong security guarantees and ensure that the model is trained in a privacy-preserving and secure way.
 
-## Installation
+## Requirements
 
-To install the required dependencies, run the following command:
+To install the required dependencies in requirements.txt:
 
