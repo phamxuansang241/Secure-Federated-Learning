@@ -4,9 +4,9 @@ This research repository presents an advanced, secure federated learning framewo
 
 The proposed framework has been effectively applied to address complex challenges in a distributed data setting, including web attack detection, handwritten digit recognition, and spam email identification. Specifically, the following applications were explored:
 
-Web attack detection: Investigating and analyzing HTTP request data to identify potential threats. Experiments were conducted utilizing the CSIC2010 dataset.
-Handwritten digit recognition: Accurately recognizing handwritten numerical characters. Experiments were conducted using the MNIST dataset.
-Spam email detection: Identifying and filtering unsolicited emails. Experiments were conducted employing the SMSSPAM dataset.
+- Web attack detection: Investigating and analyzing HTTP request data to identify potential threats. Experiments were conducted utilizing the CSIC2010 dataset.
+- Handwritten digit recognition: Accurately recognizing handwritten numerical characters. Experiments were conducted using the MNIST dataset.
+- Spam email detection: Identifying and filtering unsolicited emails. Experiments were conducted employing the SMSSPAM dataset.
 
 ## Table of Contents
 
