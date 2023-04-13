@@ -57,7 +57,7 @@ elif global_config['training_mode'] == 'fed_elgamal':
 elif global_config['training_mode'] == 'fed_ecc':
     server_cls = server_lib.EccEncryptionServer
 elif global_config['training_mode'] == 'dssgd':
-    server_cls = None
+    server_cls = server_lib.DssgdServer
 
 server = server_cls(
     model_fn=get_model_function(data_config['dataset_name'], global_config['dp_mode']),

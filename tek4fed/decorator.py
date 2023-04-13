@@ -20,8 +20,8 @@ def timer(func):
 
 
 def print_decorator(epoch):
-    def Inner(func):
 
+    def inner(func):
         def wrapper(*args, **kwargs):
             print('[TRAINING] Global epoch {} starts ...'.format(epoch))
             result = func(*args, **kwargs)
@@ -30,8 +30,4 @@ def print_decorator(epoch):
             return result
         return wrapper
 
-    return Inner
-
-
-
-
+    return inner
