@@ -84,6 +84,7 @@ def get_model_function(dataset_name, dp_mode):
             model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
 
         if dp_mode and not ModuleValidator.is_valid(model):
+            print("abcdefgh")
             model = ModuleValidator.fix(model)
 
         return model
