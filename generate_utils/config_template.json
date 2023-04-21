@@ -22,7 +22,7 @@
         "lr": 0.001
     },
     "dp_config": {
-        "epsilon": 500000,
+        "epsilon": 5000000,
         "delta": 3e-05,
         "clipping_norm": 2.0,
         "alpha": 0.05,
