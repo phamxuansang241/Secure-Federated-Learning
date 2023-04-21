@@ -5,6 +5,17 @@ import shutil
 import copy
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+    
+    
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate configuration files.')
 
@@ -16,11 +27,14 @@ def parse_arguments():
     parser.add_argument('--fractions', nargs='+', type=float, default=[1.0], help='List of fraction values.')
     parser.add_argument('--digits', nargs='+', type=int, default=[3, 5, 10], help='List of digits.')
     parser.add_argument('--sigmas', nargs='+', type=float, default=[0.1], help='List of sigma values.')
+    parser.add_argument('--dp_modes', nargs='+', type=str2bool, default=[False], help='List of dp_mode values (True or False).')
+    
     
     return parser.parse_args()
 
 
-def generate_configs(training_modes, nb_clients, datasets, data_sample_techniques, global_epochs, fractions, digits, sigmas, config):
+def generate_configs(training_modes, nb_clients, datasets, data_sample_techniques, 
+                     global_epochs, fractions, digits, dp_modes, sigmas, config):
     for training_mode in training_modes:
         folder = f'generate_utils/generated_files/json_files/{training_mode}'
         if os.path.isdir(folder):
@@ -31,20 +45,40 @@ def generate_configs(training_modes, nb_clients, datasets, data_sample_technique
                 for technique in data_sample_techniques:
                     for ge in global_epochs:
                         for fr in fractions:
-                            for sigma in sigmas:
-                                temp_config = create_config(config, training_mode, dataset, technique, ge, nb_client, fr, sigma)
-                                sub_directory = create_sub_directory(training_mode, dataset, nb_client, technique, ge, fr, sigma)
-                                create_directory(sub_directory)
-
-                                if training_mode == 'fed_compress':
-                                    for dg in digits:
-                                        write_config(sub_directory, temp_config, dg)
+                            for dp_mode in dp_modes:
+                                if dp_mode:
+                                    for sigma in sigmas:                                    
+                                        temp_config = create_config(config, training_mode, dataset, technique, 
+                                                                    ge, nb_client, fr, dp_mode, sigma)
+                                        sub_directory = create_sub_directory(training_mode, dataset, nb_client, technique, 
+                                                                            ge, fr, dp_mode, sigma)
+                                        create_directory(sub_directory)
+                                        
+                                        print(sub_directory)
+                                        if training_mode == 'fed_compress':    
+                                            for dg in digits:
+                                                    write_config(sub_directory, temp_config, dg)
+                                        else:
+                                            write_config(sub_directory, temp_config)
+                            
                                 else:
-                                    write_config(sub_directory, temp_config)
+                                    temp_config = create_config(config, training_mode, dataset, technique, 
+                                                                        ge, nb_client, fr, dp_mode, None)
+                                    sub_directory = create_sub_directory(training_mode, dataset, nb_client, technique, 
+                                                                                ge, fr, dp_mode, None)
+                                    print(sub_directory)
+                                    create_directory(sub_directory)
+
+                                    if training_mode == 'fed_compress':
+                                        for dg in digits:
+                                            write_config(sub_directory, temp_config, dg)
+                                    else:
+                                        write_config(sub_directory, temp_config)
 
 
 
-def create_config(config, training_mode, dataset, technique, ge, nb_client, fr, sigma):
+def create_config(config, training_mode, dataset, technique, 
+                  ge, nb_client, fr, dp_mode, sigma):
     temp_config = copy.deepcopy(config)
     temp_config['global_config']['training_mode'] = training_mode
     temp_config['data_config']['dataset_name'] = dataset
@@ -52,14 +86,27 @@ def create_config(config, training_mode, dataset, technique, ge, nb_client, fr, 
     temp_config['fed_config']['global_epochs'] = ge
     temp_config['fed_config']['nb_clients'] = nb_client
     temp_config['fed_config']['fraction'] = fr
-    temp_config['dp_config']['sigma'] = sigma
+    temp_config['global_config']['dp_mode'] = dp_mode
+    
+    if dp_mode:
+        temp_config['dp_config']['sigma'] = sigma
+        temp_config['global_config']['name'] = f"Test - dp_mode {dp_mode} - sigma {sigma}"
+    else:
+        temp_config['global_config']['name'] = f"Test - dp_mode {dp_mode}"
     
     return temp_config
 
 
-def create_sub_directory(training_mode, dataset, nb_client, technique, ge, fr, sigma):
-    return f'generate_utils/generated_files/json_files/{training_mode}/{dataset}/{nb_client}_clients/{technique}/{ge}_global_epochs/{fr}_fraction/{sigma}_sigma'
-
+def create_sub_directory(training_mode, dataset, nb_client, technique, 
+                         ge, fr, dp_mode, sigma):
+     
+    sub_directory = f'generate_utils/generated_files/json_files/{training_mode}/{dataset}/{nb_client}_clients/{technique}/{ge}_global_epochs/{fr}_fraction/{dp_mode}_dp_mode'
+    
+    if dp_mode:  # Add sigma to the subdirectory name if dp_mode is True
+        sub_directory += f"/{sigma}_sigma"
+        
+    return sub_directory
+    
 
 def create_directory(sub_directory):
     if not os.path.exists(sub_directory):
@@ -81,4 +128,4 @@ if __name__ == '__main__':
     with open(config_template_file_path, 'r') as f:
         config = json.load(f)
 
-    generate_configs(args.training_modes, args.nb_clients, args.datasets, args.data_sample_techniques, args.global_epochs, args.fractions, args.digits, args.sigmas, config)
+    generate_configs(args.training_modes, args.nb_clients, args.datasets, args.data_sample_techniques, args.global_epochs, args.fractions, args.digits, args.dp_modes, args.sigmas, config)

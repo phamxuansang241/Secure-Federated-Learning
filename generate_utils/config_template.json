@@ -1,6 +1,6 @@
 {
     "global_config": {
-        "name": "Test - 50% - Upload",
+        "name": "Test",
         "overwrite_experiment": true,
         "device": "cuda",
         "training_mode": "dssgd",
