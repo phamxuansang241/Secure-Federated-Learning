@@ -41,18 +41,17 @@ class LSTMNet(nn.Module):
         hidden_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device)
         carry_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device) 
 
-#         if not self.dp_mode:
-#             print('abcdefgh')
-#             self.lstm_1.flatten_parameters()  # Add this line
+        if not self.dp_mode:
+            print('abcdefgh')
+            self.lstm_1.flatten_parameters()  # Add this line
 
         output, (hidden_1, carry_1) = self.lstm_1(embedded, (hidden_0, carry_0))
     
         output = self.tanh(output) 
 
-#         if not self.dp_mode:
-#             self.lstm_2.flatten_parameters()
+        if not self.dp_mode:
+            self.lstm_2.flatten_parameters()
 
-        self.lstm_2.flatten_parameters()  # Add this line
         output, _ = self.lstm_2(output, (hidden_1, carry_1)) 
     
         output = self.fc(output[:, -1, :]) 
