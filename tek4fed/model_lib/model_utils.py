@@ -79,7 +79,8 @@ def get_model_function(dataset_name, dp_mode):
         if dataset_name == 'mnist':
             model = model_lib.Mnist_Net(num_class=10)
         elif dataset_name == 'smsspam':
-            model = model_lib.LSTMNet(vocab_size=6972, embed_dim=64, hidden_dim=16, nb_classes=2, n_layers=2)
+            model = model_lib.LSTMNet(vocab_size=6972, embed_dim=64, hidden_dim=16, nb_classes=2, n_layers=2,
+                                      dp_mode=dp_mode)
         else:
             model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
 
@@ -87,8 +88,7 @@ def get_model_function(dataset_name, dp_mode):
             model = ModuleValidator.fix(model)
 
         return model
-            
-        
+
     return model_function
 
 
