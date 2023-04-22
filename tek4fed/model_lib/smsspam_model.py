@@ -8,15 +8,14 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 class LSTMNet(nn.Module):
     
     def __init__(self, vocab_size=6972, embed_dim=128, hidden_dim=32, nb_classes=2, n_layers=2,
-                 **kwargs):
+                 dp_mode=False):
         super(LSTMNet, self).__init__()
         
         self.embed_dim = embed_dim
         self.hidden_dim = hidden_dim
         self.n_layers = n_layers
-        self.dp_mode = kwargs['dp_mode']
+        self.dp_mode = dp_mode
 
-        print(self.dp_mode)
         # Embedding layer converts integer sequences to vector sequences
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=self.embed_dim, padding_idx=0)
         
@@ -43,6 +42,7 @@ class LSTMNet(nn.Module):
         carry_0 = torch.randn(2*self.n_layers, len(x_batch), self.hidden_dim).to(device) 
 
         if not self.dp_mode:
+            print('abcdefgh')
             self.lstm_1.flatten_parameters()  # Add this line
 
         output, (hidden_1, carry_1) = self.lstm_1(embedded, (hidden_0, carry_0))
