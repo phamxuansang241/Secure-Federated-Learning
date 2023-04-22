@@ -16,6 +16,7 @@ class LSTMNet(nn.Module):
         self.n_layers = n_layers
         self.dp_mode = kwargs['dp_mode']
 
+        print(self.dp_mode)
         # Embedding layer converts integer sequences to vector sequences
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=self.embed_dim, padding_idx=0)
         
