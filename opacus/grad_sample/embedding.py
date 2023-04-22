@@ -43,7 +43,8 @@ def compute_embedding_grad_sample(
         if batch_size == 0:
             ret[layer.weight] = torch.zeros_like(layer.weight).unsqueeze(0)
             return ret
-
+        
+        activations = activations.to(torch.int64)
         index = (
             activations.unsqueeze(-1)
             .expand(*activations.shape, layer.embedding_dim)
