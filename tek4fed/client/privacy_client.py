@@ -95,7 +95,7 @@ class PriClient(BaseClient):
                 # print(_batch_idx)
                 _batch_idx = _batch_idx + 1
                 # send the input to the device
-                (x_batch, y_batch) = (x_batch.long().to(self.device),
+                (x_batch, y_batch) = (x_batch.to(self.device),
                                       y_batch.long().to(self.device))
 
                 # perform a forward pass and calculate the training loss

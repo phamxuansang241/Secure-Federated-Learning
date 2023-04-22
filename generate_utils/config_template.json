@@ -22,11 +22,11 @@
         "lr": 0.001
     },
     "dp_config": {
-        "epsilon": 50,
+        "epsilon": 5000000,
         "delta": 3e-05,
         "clipping_norm": 2.0,
         "alpha": 0.05,
-        "is_fixed_client_iter": true,
-        "client_iter": 700
+        "is_fixed_client_iter": false,
+        "client_iter": 10000
     }
 }
