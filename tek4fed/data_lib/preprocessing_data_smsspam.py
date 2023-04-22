@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 
-nltk.download('wordnet', quite=True)
+nltk.download('wordnet', quiet=True)
 nltk.download('stopwords', quiet=True)
 
 
