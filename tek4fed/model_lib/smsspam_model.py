@@ -59,4 +59,3 @@ class LSTMNet(nn.Module):
         output = self.softmax(output) 
     
         return output
-
