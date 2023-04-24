@@ -90,8 +90,6 @@ end_time = time.perf_counter()
 
 print(f'[INFO] TOTAL TIME FOR TRAINING ALL EPOCHS {end_time-start_time}')
 
-server.save_model_weights(experiment.global_weight_path)
-
 
 # Evaluating model
 print('[INFO] GET EXPERIMENT RESULTS ...')
