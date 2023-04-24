@@ -30,7 +30,7 @@ class FedServer(BaseServer):
             for client in selected_clients:
                 print('\t Client {} starts training'.format(client.index))
 
-                if self.training_config['dp_mode']:
+                if self.dp_mode:
                     if client.current_iter > client.max_allow_iter:
                         break
 

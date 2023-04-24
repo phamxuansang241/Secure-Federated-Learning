@@ -65,12 +65,10 @@ elif global_config['training_mode'] == 'dssgd':
 server = server_cls(
     model_fn=get_model_function(data_config['dataset_name'], global_config['dp_mode']),
     weight_summarizer=FedAvg(),
-    dp_mode=global_config['dp_mode'],
-    fed_config=fed_config, dp_config=dp_config
+    server_config=server_config
     )
 
 server.global_weight_path = experiment.global_weight_path
-server.update_training_config(training_config)
 server.create_clients()
 
 # Preprocessing data and distributing data
