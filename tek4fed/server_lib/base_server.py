@@ -30,12 +30,10 @@ class BaseServer(ServerInterface):
         weight_summarizer (WeightSummarizer): An object that handles weight summarization for federated learning.
         training_config (dict): The configuration parameters for the client training process.
         model_fn (Callable): A function that creates and returns the model to be used in federated learning.
-        model_infor (dict): A dictionary containing information about the model.
         dp_config (dict): Configuration parameters specific to differential privacy.
         dp_mode (bool): The differential privacy mode to be used during training.
         global_test_metrics (dict): A dictionary storing the global test loss and accuracy.
         global_model_weights (list): The weights of the global model.
-        ClientClass (type): The client class to be used (either federated learning client or privacy-preserving client).
         global_train_losses (list): A list of global train losses.
         epoch_losses (list): A list of epoch losses.
         clients (list): A list of clients participating in federated learning.
@@ -48,66 +46,60 @@ class BaseServer(ServerInterface):
             self,
             model_fn: Callable,
             weight_summarizer: WeightSummarizer,
-            dp_mode,
-            fed_config=None,
-            dp_config=None
+            server_config
     ):
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.x_test = None
         self.y_test = None
         self.data_loader = None
 
-        self.nb_clients = fed_config['nb_clients']
-        self.client_fraction = fed_config['fraction']
         self.weight_summarizer = weight_summarizer
+
+        # Unpack general_config, dp_config, and fed_config from server_config
+        self.general_config = server_config['general_config']
+        self.dp_config = server_config['dp_config']
+        self.fed_config = server_config['fed_config']
+
+        # Get the number of clients and the fraction of clients from fed_config
+        self.nb_clients = self.fed_config['nb_clients']
+        self.client_fraction = self.fed_config['fraction']
+
+        # Path to save model and model's weights
+        self.global_weight_path = self.general_config['global_weight_path']
+
+        # Get dp_mode
+        self.dp_mode = self.general_config['dp_mode']
 
         # Training config used by the clients
         self.training_config = {}
 
         # Initialize the global model's weights
         self.model_fn = model_fn
-        temp_model = self.model_fn()
-
-        # Get model information
-        self.model_infor = {'weights_shape': (get_model_infor(temp_model))[0],
-                            'total_params': (get_model_infor(temp_model))[1]}
-
-        print('-' * 100)
-        print("[INFO] MODEL INFORMATION ...")
-        print("\t Model Weight Shape: ", self.model_infor['weights_shape'])
-        print("\t Total Params of model: ", self.model_infor['total_params'])
-        print()
-
-        self.dp_config = dp_config
-        self.dp_mode = dp_mode
+        self.global_model_weights = []
 
         self.global_test_metrics = {
             'loss': [], 'accuracy': []
         }
 
-        self.global_model_weights = get_model_weights(temp_model)
-        get_rid_of_models(temp_model)
-
-        # Initialize the client with differential privacy or not
-        if not self.dp_mode:
-            self.ClientClass = NormalClient
-        else:
-            self.ClientClass = PriClient
-
         # Initialize the losses
         self.global_train_losses = []
         self.epoch_losses = []
 
-        # Initialize clients and clients' weights
+        # Initialize a list of clients and a list of clients' weights
         self.clients = []
         self.client_model_weights = []
         self.sum_client_weight = []
 
         self.max_acc = 0
-        self.global_weight_path = None
 
     def setup(self):
-        # Setup server's dataloader
+        # Set up model function and Log model information
+        self.set_up_model()
+
+        # Set up training config
+        self.set_up_training_config()
+
+        # Set up server's dataloader
         batch_size = self.training_config['batch_size']
         x_test = torch.from_numpy(self.x_test)
         y_test = torch.from_numpy(self.y_test)
@@ -125,12 +117,51 @@ class BaseServer(ServerInterface):
             self.send_model(client)
             client.setup(**client_config)
 
-    def update_training_config(self, config: dict):
-        self.training_config.update(config)
+    def set_up_model(self):
+        # Load model weights in checkpoint path
+        checkpoint_path = self.general_config['checkpoint_path']
+
+        if checkpoint_path is None:
+            model = self.model_fn()
+        else:
+            model = torch.load(checkpoint_path)
+
+            temp_model = self.model_fn()
+            if temp_model.state_dict().keys() != model.state_dict().keys():
+                raise ValueError("The model architecture in the checkpoint does not match the one in model_fn().")
+
+        self.global_model_weights = get_model_weights(model)
+        get_rid_of_models(model)
+
+        # Log model information
+        model_infor = {'weights_shape': (get_model_infor(model))[0],
+                       'total_params': (get_model_infor(model))[1]}
+
+        print('-' * 100)
+        print("[INFO] MODEL INFORMATION ...")
+        print("\t Model Weight Shape: ", model_infor['weights_shape'])
+        print("\t Total Params of model: ", model_infor['total_params'])
+        print()
+
+    def set_up_training_config(self):
+        temp_config = {
+            'compress_digit': self.general_config['compress_digit'],
+            'dataset_name': self.general_config['dataset_name'],
+            'batch_size': self.fed_config['batch_size'],
+            'global_epochs': self.fed_config['global_epochs'],
+            'local_epochs': self.fed_config['local_epochs']
+        }
+        self.training_config.update(temp_config)
 
     def create_clients(self):
+        # Initialize the client with differential privacy or not
+        if not self.dp_mode:
+            client_class = NormalClient
+        else:
+            client_class = PriClient
+
         for i in range(self.nb_clients):
-            client = self.ClientClass(i)
+            client = client_class(i)
             self.clients.append(client)
 
     def select_clients(self):

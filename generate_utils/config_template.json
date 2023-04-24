@@ -5,7 +5,8 @@
         "device": "cuda",
         "training_mode": "dssgd",
         "compress_digit": 15,
-        "dp_mode": false
+        "dp_mode": false,
+        "checkpoint_path": null
     },
     "data_config": {
         "dataset_name": "csic2010",

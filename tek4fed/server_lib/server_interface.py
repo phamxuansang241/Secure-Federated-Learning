@@ -23,10 +23,6 @@ class ServerInterface(ABC):
         pass
 
     @abstractmethod
-    def update_training_config(self, config: dict):
-        pass
-
-    @abstractmethod
     def create_clients(self):
         """
         Creates clients for training.
@@ -51,7 +47,7 @@ class ServerInterface(ABC):
         to the current global model weights.
 
         Returns:
-            temp_model (nn.Module): The created model with the updated weights.
+            checkpoint_path (nn.Module): The created model with the updated weights.
         """
         pass
 
@@ -102,4 +98,3 @@ class ServerInterface(ABC):
     @abstractmethod
     def receive_data(self, x, y):
         pass
-

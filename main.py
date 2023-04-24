@@ -37,14 +37,17 @@ experiment.serialize_config(config)
 
 sys.stdout = open(experiment.log_path, "w")
 # Creating server and client
-training_config = {
-    'compress_digit': global_config['compress_digit'],
-    'dataset_name': data_config['dataset_name'],
-    'dp_mode': global_config['dp_mode'],
-    'batch_size': fed_config['batch_size'], 
-    'global_epochs': fed_config['global_epochs'], 
-    'local_epochs': fed_config['local_epochs']
-    }
+server_config = {
+    'general_config': {
+        'checkpoint_path': global_config['checkpoint_path'],
+        'compress_digit': global_config['compress_digit'],
+        'dp_mode': global_config['dp_mode'],
+        'dataset_name': data_config['dataset_name'],
+        'global_weight_path': experiment.global_weight_path
+    },
+    'fed_config': fed_config,
+    'dp_config': dp_config
+}
 
 training_mode = global_config['training_mode']
 server_cls = None
