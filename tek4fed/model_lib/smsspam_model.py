@@ -52,7 +52,6 @@ class LSTMNet(nn.Module):
         if not self.dp_mode:
             self.lstm_2.flatten_parameters()
 
-        self.lstm_2.flatten_parameters()  # Add this line
         output, _ = self.lstm_2(output, (hidden_1, carry_1)) 
     
         output = self.fc(output[:, -1, :]) 
