@@ -134,13 +134,13 @@ class BaseServer(ServerInterface):
         get_rid_of_models(model)
 
         # Log model information
-        model_infor = {'weights_shape': (get_model_infor(model))[0],
+        self.model_infor = {'weights_shape': (get_model_infor(model))[0],
                        'total_params': (get_model_infor(model))[1]}
 
         print('-' * 100)
         print("[INFO] MODEL INFORMATION ...")
-        print("\t Model Weight Shape: ", model_infor['weights_shape'])
-        print("\t Total Params of model: ", model_infor['total_params'])
+        print("\t Model Weight Shape: ", self.model_infor['weights_shape'])
+        print("\t Total Params of model: ", self.model_infor['total_params'])
         print()
 
     def set_up_training_config(self):
