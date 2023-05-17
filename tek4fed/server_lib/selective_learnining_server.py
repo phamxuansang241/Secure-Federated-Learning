@@ -30,6 +30,6 @@ class DssgdServer(BaseServer):
                 set_model_weights(client.model, self.global_model_weights, client.device)
                 client.edge_train()
                 self.global_model_weights = get_dssgd_update(client.model, self.global_model_weights,
-                                                             self.model_infor['weights_shape'], theta_upload=0.5)
+                                                             self.model_infor['weights_shape'], theta_upload=0.9)
 
             self.test_global_model()
