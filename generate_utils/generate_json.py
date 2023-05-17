@@ -19,16 +19,15 @@ def str2bool(v):
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Generate configuration files.')
 
-    parser.add_argument('--training_modes', nargs='+', default=['dssgd'], help='List of training modes.')
-    parser.add_argument('--nb_clients', nargs='+', type=int, default=[5, 10, 20, 40, 50], help='List of the number of clients.')
+    parser.add_argument('--training_modes', nargs='+', default=['fedavg'], help='List of training modes.')
+    parser.add_argument('--nb_clients', nargs='+', type=int, default=[50], help='List of the number of clients.')
     parser.add_argument('--datasets', nargs='+', default=['csic2010', 'smsspam'], help='List of dataset names.')
     parser.add_argument('--data_sample_techniques', nargs='+', default=['iid', 'noniid_label_dir'], help='List of data sampling techniques.')
-    parser.add_argument('--global_epochs', nargs='+', type=int, default=[2, 50], help='List of global epoch values.')
-    parser.add_argument('--fractions', nargs='+', type=float, default=[1.0], help='List of fraction values.')
+    parser.add_argument('--global_epochs', nargs='+', type=int, default=[50], help='List of global epoch values.')
+    parser.add_argument('--fractions', nargs='+', type=float, default=[0.5, 0.6, 0.7, 0.8, 0.9, 1.0], help='List of fraction values.')
     parser.add_argument('--digits', nargs='+', type=int, default=[3, 5, 10], help='List of digits.')
     parser.add_argument('--sigmas', nargs='+', type=float, default=[0.1], help='List of sigma values.')
     parser.add_argument('--dp_modes', nargs='+', type=str2bool, default=[False], help='List of dp_mode values (True or False).')
-    
     
     return parser.parse_args()
 

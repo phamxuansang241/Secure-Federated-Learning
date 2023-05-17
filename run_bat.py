@@ -1,7 +1,7 @@
 import os
 
 
-folder_path = "generate_utils\\generated_files\\batch_files\\dssgd"
+folder_path = "generate_utils\\generated_files\\batch_files\\dssgd\\mnist"
 
 for root, dirs, files in os.walk (folder_path):
     for filename in files:

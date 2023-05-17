@@ -3,7 +3,7 @@
         "name": "Test",
         "overwrite_experiment": true,
         "device": "cuda",
-        "training_mode": "dssgd",
+        "training_mode": "fedavg",
         "compress_digit": 15,
         "dp_mode": false,
         "checkpoint_path": null

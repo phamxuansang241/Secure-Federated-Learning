@@ -92,7 +92,7 @@ def get_model_function(dataset_name, dp_mode):
     return model_function
 
 
-def get_dssgd_update(client_model, server_weights, weights_shape, theta_upload=0.1) -> List[np.ndarray]:
+def get_dssgd_update(client_model, server_weights, weights_shape, theta_upload=1.0) -> List[np.ndarray]:
     client_weights = get_model_weights(client_model)
 
     # flatten client weights and server weights
