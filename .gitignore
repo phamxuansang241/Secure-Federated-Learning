@@ -8,3 +8,4 @@ __pycache__/
 *.cfg
 *.bat
 *.txt
+/datasets
