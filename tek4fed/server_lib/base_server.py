@@ -4,6 +4,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from torch import nn
 from math import *
 from typing import Callable
+from tek4fed import data_lib
 from tek4fed.server_lib import ServerInterface
 from tek4fed.client import NormalClient, PriClient
 from tek4fed.summarizer_lib.weight_summarizer import WeightSummarizer
@@ -24,7 +25,6 @@ class BaseServer(ServerInterface):
         device (torch.device): The device to be used for computations (GPU or CPU).
         x_test (numpy.ndarray): The test input data.
         y_test (numpy.ndarray): The test output data.
-        data_loader (torch.utils.data.DataLoader): The DataLoader for test data.
         nb_clients (int): The number of clients participating in federated learning.
         client_fraction (float): The fraction of clients to be selected for each communication round.
         weight_summarizer (WeightSummarizer): An object that handles weight summarization for federated learning.
@@ -51,7 +51,7 @@ class BaseServer(ServerInterface):
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.x_test = None
         self.y_test = None
-        self.data_loader = None
+        self.dataset = None
 
         self.weight_summarizer = weight_summarizer
 
@@ -100,12 +100,14 @@ class BaseServer(ServerInterface):
         self.set_up_training_config()
 
         # Set up server's dataloader
-        batch_size = self.training_config['batch_size']
-        x_test = torch.from_numpy(self.x_test)
-        y_test = torch.from_numpy(self.y_test)
+        dataset_name = self.training_config['dataset_name']
 
-        test_dataset = TensorDataset(x_test, y_test)
-        self.data_loader = DataLoader(test_dataset, shuffle=True, batch_size=batch_size)
+        if dataset_name == 'covid':
+            self.dataset = data_lib.ChestXRayDataset(self.x_train, self.y_train, 'train')
+        else:
+            x_train = torch.from_numpy(self.x_train)
+            y_train = torch.from_numpy(self.y_train)
+            self.dataset = TensorDataset(x_train, y_train)
 
         # Set up each client
         client_config = {
@@ -135,7 +137,7 @@ class BaseServer(ServerInterface):
 
         # Log model information
         self.model_infor = {'weights_shape': (get_model_infor(model))[0],
-                       'total_params': (get_model_infor(model))[1]}
+                            'total_params': (get_model_infor(model))[1]}
 
         print('-' * 100)
         print("[INFO] MODEL INFORMATION ...")
@@ -203,6 +205,8 @@ class BaseServer(ServerInterface):
     def test_global_model(self):
         temp_model = self.create_model_with_updated_weights()
 
+        batch_size = self.training_config['batch_size']
+        data_loader = DataLoader(self.dataset, batch_size=batch_size)
         loss_fn = nn.CrossEntropyLoss()
         total_test_loss = 0
         test_correct = 0
@@ -210,7 +214,7 @@ class BaseServer(ServerInterface):
         with torch.no_grad():
             temp_model.eval()
 
-            for (x_batch, y_batch) in self.data_loader:
+            for (x_batch, y_batch) in data_loader:
                 (x_batch, y_batch) = (x_batch.to(self.device),
                                       y_batch.long().to(self.device))
 
@@ -220,7 +224,7 @@ class BaseServer(ServerInterface):
                     torch.float
                 ).sum().item()
 
-        avg_test_loss = (total_test_loss / len(self.data_loader)).cpu().detach().item()
+        avg_test_loss = (total_test_loss / len(data_loader)).cpu().detach().item()
         test_correct = test_correct / len(self.x_test)
 
         self.global_test_metrics['loss'].append(avg_test_loss)

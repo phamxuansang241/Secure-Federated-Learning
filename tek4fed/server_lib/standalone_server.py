@@ -4,6 +4,7 @@ from tek4fed.decorator import print_decorator
 import numpy as np
 import torch
 from torch import nn
+from torch.utils.data import DataLoader
 
 
 class StandaloneServer(BaseServer):
@@ -53,6 +54,8 @@ class StandaloneServer(BaseServer):
         client_model = client.model
         client_model.to(client.device)
 
+        batch_size = self.training_config['batch_size']
+        data_loader = DataLoader(self.dataset, batch_size=batch_size)
         loss_fn = nn.CrossEntropyLoss()
         total_test_loss = 0
         test_correct = 0
@@ -60,7 +63,7 @@ class StandaloneServer(BaseServer):
         with torch.no_grad():
             client_model.eval()
 
-            for (x_batch, y_batch) in self.data_loader:
+            for (x_batch, y_batch) in data_loader:
                 (x_batch, y_batch) = (x_batch.to(self.device),
                                       y_batch.long().to(self.device))
 
@@ -70,7 +73,7 @@ class StandaloneServer(BaseServer):
                     torch.float
                 ).sum().item()
 
-        avg_test_loss = (total_test_loss / len(self.data_loader)).cpu().detach().item()
+        avg_test_loss = (total_test_loss / len(data_loader)).cpu().detach().item()
         test_correct = test_correct / len(self.x_test)
 
         

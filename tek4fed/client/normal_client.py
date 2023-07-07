@@ -1,6 +1,7 @@
 from tek4fed.decorator import timer
 from tek4fed.client import BaseClient
 import torch
+from torch.utils.data import DataLoader
 import gc
 
 
@@ -20,10 +21,12 @@ class NormalClient(BaseClient):
         self.model.train()
 
         losses = []
-
-        for e in range(0, self.local_epochs):
+        local_epochs = self.training_config['local_epochs']
+        batch_size = self.training_config['batch_size']
+        data_loader = DataLoader(self.dataset, batch_size=batch_size)
+        for e in range(0, local_epochs):
             # loop over the training set
-            for (x_batch, y_batch) in self.data_loader:
+            for (x_batch, y_batch) in data_loader:
                 # send the input to the device
                 (x_batch, y_batch) = (x_batch.to(self.device),
                                       y_batch.long().to(self.device))
@@ -43,6 +46,7 @@ class NormalClient(BaseClient):
 
         print("\t\t Loss value: {:.6f}".format(sum(losses) / len(losses)))
 
+        del data_loader
         gc.collect()
 
         return losses

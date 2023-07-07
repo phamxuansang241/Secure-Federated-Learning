@@ -138,6 +138,7 @@ class DataHandler:
     def assign_data_to_clients(self, clients, sampling_technique):
         sampled_data_indices = self.sampling(sampling_technique, len(clients))
         for client, data_indices in zip(clients, sampled_data_indices):
+            print(data_indices)
             x = self.x_train[data_indices]
             y = self.y_train[data_indices]
             client.receive_data(x, y)

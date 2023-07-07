@@ -1,7 +1,7 @@
-from tek4fed import model_lib
+from tek4fed import model_lib, data_lib
 from typing import Callable
 import torch
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import TensorDataset
 from torch.optim import Adam
 from torch import nn
 
@@ -11,8 +11,9 @@ class BaseClient:
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.index = index
 
-        self.x_train, self.y_train, self.data_loader = None, None, None
-        self.local_epochs, self.model, self.optimizer, self.criterion, self.lr = None, None, None, None, None
+        self.x_train, self.y_train, self.dataset = None, None, None
+        self.training_config = None
+        self.model, self.optimizer, self.criterion, self.lr = None, None, None, None
 
     def setup(self, **client_config):
         """
@@ -33,14 +34,15 @@ class BaseClient:
             client_config (dict): Configuration details for the client.
         """
         training_config = client_config['training_config']
-        batch_size = training_config['batch_size']
-        self.local_epochs = training_config['local_epochs']
+        dataset_name = training_config['dataset_name']
         self.lr = 0.001
 
-        x_train = torch.from_numpy(self.x_train)
-        y_train = torch.from_numpy(self.y_train)
-        train_dataset = TensorDataset(x_train, y_train)
-        self.data_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size)
+        if dataset_name == 'covid':
+            self.dataset = data_lib.ChestXRayDataset(self.x_train, self.y_train, 'train')
+        else:
+            x_train = torch.from_numpy(self.x_train)
+            y_train = torch.from_numpy(self.y_train)
+            self.dataset = TensorDataset(x_train, y_train)
 
     def receive_data(self, x, y):
         self.x_train = x
@@ -50,5 +52,3 @@ class BaseClient:
         temp_model = model_fn().to(self.device)
         model_lib.set_model_weights(temp_model, model_weights, used_device=self.device)
         self.model = temp_model
-
-
