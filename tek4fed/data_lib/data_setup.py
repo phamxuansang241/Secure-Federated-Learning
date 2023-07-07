@@ -45,6 +45,8 @@ class DataSetup:
         elif self.dataset_name == 'smsspam':
             print('Using smsspam dataset ...')
             (self.x_train, self.y_train), (self.x_test, self.y_test) = data_lib.smsspam_load_data()
+        elif self.dataset_name == 'covid19':
+            (self.x_train, self.y_train), (self.x_test, self.y_test) = data_lib.covid_load_data()
 
     def distribute_data(self, server):
         if self.dataset_name == 'fusion':
