@@ -103,11 +103,11 @@ class BaseServer(ServerInterface):
         dataset_name = self.training_config['dataset_name']
 
         if dataset_name == 'covid':
-            self.dataset = data_lib.ChestXRayDataset(self.x_train, self.y_train, 'train')
+            self.dataset = data_lib.ChestXRayDataset(self.x_test, self.y_test, 'test')
         else:
-            x_train = torch.from_numpy(self.x_train)
-            y_train = torch.from_numpy(self.y_train)
-            self.dataset = TensorDataset(x_train, y_train)
+            x_test = torch.from_numpy(self.x_test)
+            y_test = torch.from_numpy(self.y_test)
+            self.dataset = TensorDataset(x_test, y_test)
 
         # Set up each client
         client_config = {

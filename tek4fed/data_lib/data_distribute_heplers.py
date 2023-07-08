@@ -139,6 +139,11 @@ class DataHandler:
         sampled_data_indices = self.sampling(sampling_technique, len(clients))
         for client, data_indices in zip(clients, sampled_data_indices):
             print(data_indices)
-            x = self.x_train[data_indices]
+
+            if isinstance(self.x_train, np.ndarray):
+                x = self.x_train[data_indices]
+            else:
+                data_indices_list = data_indices.tolist()
+                x = [self.x_train[i] for i in data_indices_list]
             y = self.y_train[data_indices]
             client.receive_data(x, y)

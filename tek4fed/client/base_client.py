@@ -33,8 +33,8 @@ class BaseClient:
         Args:
             client_config (dict): Configuration details for the client.
         """
-        training_config = client_config['training_config']
-        dataset_name = training_config['dataset_name']
+        self.training_config = client_config['training_config']
+        dataset_name = self.training_config['dataset_name']
         self.lr = 0.001
 
         if dataset_name == 'covid':
