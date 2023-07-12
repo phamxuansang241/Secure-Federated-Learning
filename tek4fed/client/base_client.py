@@ -35,7 +35,7 @@ class BaseClient:
         """
         self.training_config = client_config['training_config']
         dataset_name = self.training_config['dataset_name']
-        self.lr = 0.001
+        self.lr = 0.00004
 
         if dataset_name == 'covid':
             self.dataset = data_lib.ChestXRayDataset(self.x_train, self.y_train, 'train')

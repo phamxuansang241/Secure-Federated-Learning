@@ -14,6 +14,7 @@ class NormalClient(BaseClient):
 
     @timer
     def edge_train(self):
+        print(self.device)
         if self.model is None:
             raise ValueError('Model is not created for client: {0}'.format(self.index))
         self.model.to(self.device)

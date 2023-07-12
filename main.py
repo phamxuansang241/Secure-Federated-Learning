@@ -35,7 +35,7 @@ experiment = Experiment(experiment_config)
 experiment.serialize_config(config)
 
 
-sys.stdout = open(experiment.log_path, "w")
+# sys.stdout = open(experiment.log_path, "w")
 # Creating server and client
 server_config = {
     'general_config': {
@@ -94,5 +94,5 @@ print('[INFO] GET EXPERIMENT RESULTS ...')
 get_experiment_result(server, experiment, data_config['dataset_name'])
 
 
-sys.stdout.close()
-sys.stdout = sys.__stdout__
+# sys.stdout.close()
+# sys.stdout = sys.__stdout__

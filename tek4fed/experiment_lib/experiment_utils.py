@@ -6,13 +6,15 @@ import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
 from datetime import date
 import copy
+from torch.utils.data import DataLoader
+import gc
 
 
 def get_experiment_result(server, experiment, dataset_name):
     num_class = {
         'mnist': 10,
         'csic2010': 2, 'fwaf': 2, 'httpparams': 2, 'fusion': 2, 
-        'smsspam': 2
+        'smsspam': 2, 'covid': 3
     }
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -21,13 +23,18 @@ def get_experiment_result(server, experiment, dataset_name):
     model.eval()
     predictions = []
     y_test = []
+    
+    batch_size = server.training_config['batch_size']
+    data_loader = DataLoader(server.dataset, batch_size=batch_size)
     with torch.no_grad():
-        for (x_batch, y_batch) in server.data_loader:
+        for (x_batch, y_batch) in data_loader:
             x_batch = x_batch.to(device)
             pred = model(x_batch)
             predictions.extend(pred.detach().cpu().numpy())
             y_test.extend(y_batch)
-
+    del data_loader
+    gc.collect()
+    
     predictions = np.array(predictions)
     score = None
     if num_class[dataset_name] > 2:

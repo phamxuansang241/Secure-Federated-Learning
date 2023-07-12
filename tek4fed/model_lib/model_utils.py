@@ -82,7 +82,7 @@ def get_model_function(dataset_name, dp_mode):
             model = model_lib.LSTMNet(vocab_size=6972, embed_dim=64, hidden_dim=16, nb_classes=2, n_layers=2,
                                       dp_mode=dp_mode)
         elif dataset_name == 'covid':
-            model = model_lib.pretrain_resnet18()
+            model = model_lib.pretrain_vgg19()
         else:
             model = model_lib.CNN(vocab_size=70, embed_dim=128, input_length=500, num_class=2)
 

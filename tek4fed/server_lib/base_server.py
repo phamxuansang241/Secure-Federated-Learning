@@ -132,6 +132,7 @@ class BaseServer(ServerInterface):
             if temp_model.state_dict().keys() != model.state_dict().keys():
                 raise ValueError("The model architecture in the checkpoint does not match the one in model_fn().")
 
+            print('Checkpoint oke')
         self.global_model_weights = get_model_weights(model)
         get_rid_of_models(model)
 
@@ -204,7 +205,7 @@ class BaseServer(ServerInterface):
 
     def test_global_model(self):
         temp_model = self.create_model_with_updated_weights()
-
+        temp_model.to(self.device)
         batch_size = self.training_config['batch_size']
         data_loader = DataLoader(self.dataset, batch_size=batch_size)
         loss_fn = nn.CrossEntropyLoss()
