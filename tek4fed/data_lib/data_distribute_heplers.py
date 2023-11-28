@@ -138,7 +138,6 @@ class DataHandler:
     def assign_data_to_clients(self, clients, sampling_technique):
         sampled_data_indices = self.sampling(sampling_technique, len(clients))
         for client, data_indices in zip(clients, sampled_data_indices):
-            print(len(data_indices))
 
             if isinstance(self.x_train, np.ndarray):
                 x = self.x_train[data_indices]
